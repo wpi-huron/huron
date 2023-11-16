@@ -45,6 +45,7 @@ enable_testing()
 add_executable(huron_tests huron.cc)
 
 # Add subpackages
+add_subdirectory(common)
 add_subdirectory(driver)
 add_subdirectory(utils)
 add_subdirectory(system)
@@ -54,6 +55,7 @@ add_subdirectory(control)
 target_link_libraries(huron
     PUBLIC
     sockcanpp
+    serial
 )
 target_include_directories(huron
     PUBLIC
