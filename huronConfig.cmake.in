@@ -15,6 +15,7 @@ set(huron_LIBRARIES huron::huron)
 # list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 find_dependency(sockcanpp REQUIRED)
+find_dependency(serial REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/huronTargets.cmake")
 

@@ -57,13 +57,14 @@ add_subdirectory(control)
 # add_subdirectory(third_party)
 
 target_link_libraries(huron
-    PUBLIC
+  PUBLIC
     sockcanpp
     serial
 )
 target_include_directories(huron
     PUBLIC
     ${sockcanpp_INCLUDE_DIRS}/..
+    ${serial_INCLUDE_DIRS}/..
     ${EIGEN3_INCLUDE_DIR}/..)
 
 # Install the "huronConfig.cmake" file and export the target
@@ -97,8 +98,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/huronConfig.cmake
 )
 # Also install Findsockcanpp.cmake
 install(
-    FILES Findsockcanpp.cmake
-    DESTINATION lib/cmake/huron/Modules
+  FILES Findsockcanpp.cmake Findserial.cmake
+  DESTINATION lib/cmake/huron/Modules
 )
 
 # Uninstall target
@@ -114,7 +115,7 @@ if(NOT TARGET uninstall)
 endif()
 
 # Build examples
-add_subdirectory(examples)
+# add_subdirectory(examples)
 
 target_link_libraries(
   huron_tests
