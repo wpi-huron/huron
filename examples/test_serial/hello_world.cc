@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 
   while (true) {
     std::cout << serial.ReadLine() << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(0.5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
   return 0;
 }
