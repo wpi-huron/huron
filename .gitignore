@@ -8,3 +8,5 @@ log
 compile_commands.json
 
 cmake-build-debug
+
+*.orig
