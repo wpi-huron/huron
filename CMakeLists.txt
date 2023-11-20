@@ -29,6 +29,8 @@ message(sockcanpp_INCLUDE_DIRS="${sockcanpp_INCLUDE_DIRS}")
 find_package(serial REQUIRED)
 message(serial_INCLUDE_DIRS="${serial_INCLUDE_DIRS}")
 
+find_package (Eigen3 REQUIRED)
+
 # Google Test
 include(FetchContent)
 FetchContent_Declare(
