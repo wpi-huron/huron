@@ -36,8 +36,7 @@ class ForceSensingResistorArray : public GenericComponent{
     : GenericComponent(std::move(config)),
       name_(name),
       num_sensors_(num_sensors),
-      values_(std::vector<double>(num_sensors)),
-      values_eigen_(values_.data(), num_sensors, 1) {}
+      values_(std::vector<double>(num_sensors)) {}
 
   explicit ForceSensingResistorArray(std::string name, size_t num_sensors)
     : ForceSensingResistorArray(
@@ -58,7 +57,6 @@ class ForceSensingResistorArray : public GenericComponent{
   std::string name_;
   size_t num_sensors_;
   std::vector<double> values_;
-  Eigen::Map<Eigen::VectorXd> values_eigen_;
 };
 
 }  // namespace huron

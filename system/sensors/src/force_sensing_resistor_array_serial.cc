@@ -27,10 +27,10 @@ Eigen::VectorXd ForceSensingResistorArraySerial::GetValues() {
   std::vector<std::string> str_values = utils::split(msg, delimiter);
   if (str_values[0] == name_) {
     for (size_t i = 1; i < str_values.size(); ++i) {
-      values_[i] = std::stod(str_values[i]);
+      values_[i-1] = std::stod(str_values[i]);
     }
   }
-  return values_eigen_;
+  return Eigen::Map<Eigen::VectorXd>(values_.data(), values_.size());
 }
 
 void ForceSensingResistorArraySerial::Initialize() {
