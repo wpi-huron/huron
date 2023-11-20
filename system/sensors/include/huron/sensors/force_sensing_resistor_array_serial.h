@@ -6,6 +6,13 @@
 
 namespace huron {
 
+/**
+  * An array of FSR with values transmitted over Serial communication.
+  *
+  * The sensor values are in double but sent in string in the following syntax:
+  * <sensor_name>,<val_1>,<val_2>,...,<val_n>\n
+  * The sensor values should be sent periodically.
+  */
 class ForceSensingResistorArraySerial : public ForceSensingResistorArray {
  public:
   ForceSensingResistorArraySerial(
@@ -28,6 +35,10 @@ class ForceSensingResistorArraySerial : public ForceSensingResistorArray {
   virtual ~ForceSensingResistorArraySerial() = default;
 
   Eigen::VectorXd GetValues() override;
+
+  void Initialize() override;
+  void SetUp() override;
+  void Terminate() override;
 
  private:
   static inline const std::string delimiter = ",";

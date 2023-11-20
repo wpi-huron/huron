@@ -25,10 +25,22 @@ Eigen::VectorXd ForceSensingResistorArraySerial::GetValues() {
   std::string msg;
   serial_->ReadLine(msg);
   std::vector<std::string> str_values = utils::split(msg, delimiter);
-  for (size_t i = 0; i < str_values.size(); ++i) {
-    values_[i] = std::stod(str_values[i]);
+  if (str_values[0] == name_) {
+    for (size_t i = 1; i < str_values.size(); ++i) {
+      values_[i] = std::stod(str_values[i]);
+    }
   }
   return values_eigen_;
+}
+
+void ForceSensingResistorArraySerial::Initialize() {
+  serial_->Open();
+}
+
+void ForceSensingResistorArraySerial::SetUp() {
+}
+
+void ForceSensingResistorArraySerial::Terminate() {
 }
 
 }  // namespace huron
