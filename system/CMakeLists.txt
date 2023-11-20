@@ -1,3 +1,5 @@
 add_subdirectory(control_interfaces)
+add_subdirectory(locomotion)
+add_subdirectory(sensors)
 add_subdirectory(exceptions)
 add_subdirectory(odrive)
