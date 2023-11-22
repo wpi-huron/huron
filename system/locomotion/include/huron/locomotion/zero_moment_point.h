@@ -18,37 +18,70 @@ class ZeroMomentPoint {
   static std::unique_ptr<ZeroMomentPointFSRArray> FromFSRArray(
     std::shared_ptr<ForceSensingResistorArray> fsr_array);
 
-  virtual Eigen::Vector2d Compute() = 0;
+  ZeroMomentPoint(std::string frame, double normal_force_threshold);
+
+  virtual void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) = 0;
+  inline void Compute(Eigen::Ref<Eigen::Vector2d> zmp) {
+    double fz;
+    Compute(zmp, fz);
+  }
+  inline Eigen::Vector2d Compute() {
+    Eigen::Vector2d zmp;
+    Compute(zmp);
+    return zmp;
+  }
+
+  inline std::string GetFrame() const {
+    return frame_;
+  }
 
  protected:
-  std::string frame;
+  std::string frame_;
+  double normal_force_threshold_;
 };
 
 class ZeroMomentPointFTSensor : public ZeroMomentPoint {
  public:
-  Eigen::Vector2d Compute() override;
+  ZeroMomentPointFTSensor(
+    std::string frame,
+    double normal_force_threshold,
+    Eigen::Vector3d sensor_position,
+    std::shared_ptr<ForceTorqueSensor> ft_sensor);
+
+  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
 
  private:
-  Eigen::Vector3d sensor_position;
-  std::shared_ptr<ForceTorqueSensor> ft_sensor;
+  Eigen::Vector3d sensor_position_;
+  std::shared_ptr<ForceTorqueSensor> ft_sensor_;
 };
 
 class ZeroMomentPointFSRArray : public ZeroMomentPoint {
  public:
-  Eigen::Vector2d Compute() override;
+  ZeroMomentPointFSRArray(
+    std::string frame,
+    double normal_force_threshold,
+    const Eigen::Ref<const Eigen::VectorXd>& sensor_x_positions,
+    const Eigen::Ref<const Eigen::VectorXd>& sensor_y_positions,
+    std::shared_ptr<ForceSensingResistorArray> fsr_array);
+
+  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
 
  private:
-  Eigen::MatrixX3d sensor_positions;
-  std::shared_ptr<ForceSensingResistorArray> fsr_array;
+  Eigen::VectorXd sensor_x_positions_;
+  Eigen::VectorXd sensor_y_positions_;
+  std::shared_ptr<ForceSensingResistorArray> fsr_array_;
 };
 
 class ZeroMomentPointTotal : public ZeroMomentPoint {
  public:
-  Eigen::Vector2d Compute() override;
+  ZeroMomentPointTotal(
+    std::string frame,
+    std::vector<std::shared_ptr<ZeroMomentPoint>> zmp_vector);
+    
+  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
 
  private:
-  Eigen::MatrixX3d feet_positions;
-  std::vector<std::shared_ptr<ZeroMomentPoint>> zmp_vector;
+  std::vector<std::shared_ptr<ZeroMomentPoint>> zmp_vector_;
 };
 
 }  // namespace huron
