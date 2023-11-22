@@ -21,7 +21,6 @@ project(huron)
 # Find sockcanpp
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 find_package(sockcanpp REQUIRED)
-find_package (Eigen3 REQUIRED)
 
 message(sockcanpp_INCLUDE_DIRS="${sockcanpp_INCLUDE_DIRS}")
 

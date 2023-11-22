@@ -52,7 +52,7 @@ jobs:
 
           cd third_party/serial
           cmake -DCMAKE_TOOLCHAIN_FILE=../../tools/armhf-toolchain.cmake -DBUILD_SHARED_LIBS=ON -Bbuild
-          sudo cmake --build build --parallel --target install
+          cmake --build build --parallel --target install
           cd -
 
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib

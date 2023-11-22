@@ -4,12 +4,16 @@ namespace huron {
 namespace ros2 {
 
 Huron::Huron(std::shared_ptr<HuronNode> node,
-      std::unique_ptr<huron::Robot::RobotConfiguration> config)
-  : huron::Robot(std::move(config)), node_(std::move(node)) {}
+             std::unique_ptr<huron::Robot::RobotConfiguration> config,
+             std::unique_ptr<huron::ZeroMomentPoint> zmp)
+  : huron::LeggedRobot(std::move(config), std::move(zmp)),
+    node_(std::move(node)) {}
 
-Huron::Huron(std::shared_ptr<HuronNode> node)
+Huron::Huron(std::shared_ptr<HuronNode> node,
+             std::unique_ptr<huron::ZeroMomentPoint> zmp)
   : Huron(std::move(node),
-          std::make_unique<huron::Robot::RobotConfiguration>()) {}
+          std::make_unique<huron::Robot::RobotConfiguration>(),
+          std::move(zmp)) {}
 
 void Huron::Initialize() {
 }

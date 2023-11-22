@@ -6,16 +6,18 @@
 #include <vector>
 #include <memory>
 
-#include "huron/control_interfaces/robot.h"
+#include "huron/control_interfaces/legged_robot.h"
 
 namespace huron {
 namespace ros2 {
 
-class Huron : public huron::Robot {
+class Huron : public huron::LeggedRobot {
  public:
   Huron(std::shared_ptr<HuronNode> node,
-        std::unique_ptr<huron::Robot::RobotConfiguration> config);
-  explicit Huron(std::shared_ptr<HuronNode> node);
+        std::unique_ptr<huron::Robot::RobotConfiguration> config,
+        std::unique_ptr<huron::ZeroMomentPoint> zmp);
+  Huron(std::shared_ptr<HuronNode> node,
+        std::unique_ptr<huron::ZeroMomentPoint> zmp);
 
   Huron(const Huron&) = delete;
   Huron& operator=(const Huron&) = delete;

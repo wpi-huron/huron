@@ -46,6 +46,7 @@ class ZeroMomentPointFTSensor : public ZeroMomentPoint {
     std::string frame,
     double normal_force_threshold,
     Eigen::Vector3d sensor_position,
+    Eigen::Matrix<double, 6, 6> sensor_frame_tf,
     std::shared_ptr<ForceTorqueSensor> ft_sensor);
 
   void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;

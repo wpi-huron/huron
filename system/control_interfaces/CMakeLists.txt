@@ -4,7 +4,8 @@ list(APPEND SOURCE_FILES
   "${dir}/src/configuration.cc"
   "${dir}/src/joint.cc"
   "${dir}/src/revolute_joint.cc"
-  "${dir}/src/robot.cc")
+  "${dir}/src/robot.cc"
+  "${dir}/src/legged_robot.cc")
 FILE(GLOB_RECURSE HEADER_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
