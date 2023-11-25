@@ -45,14 +45,15 @@ class ZeroMomentPointFTSensor : public ZeroMomentPoint {
   ZeroMomentPointFTSensor(
     std::string frame,
     double normal_force_threshold,
-    Eigen::Vector3d sensor_position,
-    Eigen::Matrix<double, 6, 6> sensor_frame_tf,
+    const Eigen::Vector3d& sensor_position,
+    const Eigen::Vector3d& sensor_frame_zyx,
     std::shared_ptr<ForceTorqueSensor> ft_sensor);
 
   void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
 
  private:
-  Eigen::Vector3d sensor_position_;
+  const Eigen::Vector3d sensor_position_;
+  const Eigen::Vector3d sensor_frame_zyx_;
   std::shared_ptr<ForceTorqueSensor> ft_sensor_;
 };
 
@@ -61,15 +62,15 @@ class ZeroMomentPointFSRArray : public ZeroMomentPoint {
   ZeroMomentPointFSRArray(
     std::string frame,
     double normal_force_threshold,
-    const Eigen::Ref<const Eigen::VectorXd>& sensor_x_positions,
-    const Eigen::Ref<const Eigen::VectorXd>& sensor_y_positions,
+    const Eigen::VectorXd& sensor_x_positions,
+    const Eigen::VectorXd& sensor_y_positions,
     std::shared_ptr<ForceSensingResistorArray> fsr_array);
 
   void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
 
  private:
-  Eigen::VectorXd sensor_x_positions_;
-  Eigen::VectorXd sensor_y_positions_;
+  const Eigen::VectorXd sensor_x_positions_;
+  const Eigen::VectorXd sensor_y_positions_;
   std::shared_ptr<ForceSensingResistorArray> fsr_array_;
 };
 

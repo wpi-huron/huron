@@ -6,11 +6,8 @@
 TEST(PushRecoveryTest, ZeroConfiguration) {
   PushRecoveryControl pr;
   // Expect equality.
-  EXPECT_EQ(pr.GetTorque({1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                         {1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0}),
+  EXPECT_EQ(pr.GetTorque(0.0,                       // x_cop
+                         std::vector<double>(12),   // position
+                         std::vector<double>(12)),  // velocity
             Eigen::Vector3d::Zero());
 }

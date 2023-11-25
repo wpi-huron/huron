@@ -13,10 +13,12 @@ ZeroMomentPoint::ZeroMomentPoint(std::string frame,
 ZeroMomentPointFTSensor::ZeroMomentPointFTSensor(
   std::string frame,
   double normal_force_threshold,
-  Eigen::Vector3d sensor_position,
+  const Eigen::Vector3d& sensor_position,
+  const Eigen::Vector3d& sensor_frame_zyx,
   std::shared_ptr<ForceTorqueSensor> ft_sensor) 
   : ZeroMomentPoint(frame, normal_force_threshold),
     sensor_position_(sensor_position),
+    sensor_frame_zyx_(sensor_frame_zyx),
     ft_sensor_(std::move(ft_sensor)) {
 }
 
@@ -37,8 +39,8 @@ void ZeroMomentPointFTSensor::Compute(
 ZeroMomentPointFSRArray::ZeroMomentPointFSRArray(
   std::string frame,
   double normal_force_threshold,
-  const Eigen::Ref<const Eigen::VectorXd>& sensor_x_positions,
-  const Eigen::Ref<const Eigen::VectorXd>& sensor_y_positions,
+  const Eigen::VectorXd& sensor_x_positions,
+  const Eigen::VectorXd& sensor_y_positions,
   std::shared_ptr<ForceSensingResistorArray> fsr_array)
   : ZeroMomentPoint(frame, normal_force_threshold),
     sensor_x_positions_(sensor_x_positions),
