@@ -53,7 +53,7 @@ class ZeroMomentPointFTSensor : public ZeroMomentPoint {
 
  private:
   const Eigen::Vector3d sensor_position_;
-  const Eigen::Vector3d sensor_frame_zyx_;
+  const Eigen::Matrix<double, 6, 6> sensor_frame_rotation_;
   std::shared_ptr<ForceTorqueSensor> ft_sensor_;
 };
 

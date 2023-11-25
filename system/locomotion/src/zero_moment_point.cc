@@ -1,5 +1,6 @@
 #include "huron/locomotion/zero_moment_point.h"
 #include "huron/sensors/force_sensing_resistor_array.h"
+#include "huron/math/rotation.h"
 #include "huron/types.h"
 
 namespace huron {
@@ -18,20 +19,27 @@ ZeroMomentPointFTSensor::ZeroMomentPointFTSensor(
   std::shared_ptr<ForceTorqueSensor> ft_sensor) 
   : ZeroMomentPoint(frame, normal_force_threshold),
     sensor_position_(sensor_position),
-    sensor_frame_zyx_(sensor_frame_zyx),
+    sensor_frame_rotation_(  // constructs 6x6 rotation matrix
+      [&sensor_frame_zyx]() {
+        Eigen::Matrix<double, 6, 6> ret;
+        Eigen::Matrix3d rot = math::ZyxToRotationMatrix(sensor_frame_zyx);
+        ret.topLeftCorner(3, 3) = rot;
+        ret.bottomRightCorner(3, 3) = rot;
+        return ret;
+      }()),
     ft_sensor_(std::move(ft_sensor)) {
 }
 
 void ZeroMomentPointFTSensor::Compute(
   Eigen::Ref<Eigen::Vector2d> zmp, double& fz) {
-  Vector6d w = ft_sensor_->GetWrench();
+  Vector6d w = sensor_frame_rotation_ * ft_sensor_->GetWrench();
   fz = w(2);
-  if (w(2) < normal_force_threshold_) {
+  if (std::abs(w(2)) < normal_force_threshold_) {
     zmp.setZero();
   } else {
     zmp(0) = (-w(4) - w(0)*sensor_position_[2] + sensor_position_[0]*w(2))
       / w(2);
-    zmp(1) = (w(0) - w(1)*sensor_position_[2] + sensor_position_[1]*w(2))
+    zmp(1) = (w(3) - w(1)*sensor_position_[2] + sensor_position_[1]*w(2))
       / w(2);
   }
 }
@@ -53,7 +61,7 @@ void ZeroMomentPointFSRArray::Compute(Eigen::Ref<Eigen::Vector2d> zmp,
   Eigen::VectorXd fz_array = fsr_array_->GetValues().transpose();
   double sum_fz = fz_array.colwise().sum().value();
   fz = sum_fz;
-  if (sum_fz < normal_force_threshold_) {
+  if (std::abs(sum_fz) < normal_force_threshold_) {
     zmp.setZero();
   } else {
     zmp(0) = (fz_array * sensor_x_positions_).value() / sum_fz;
