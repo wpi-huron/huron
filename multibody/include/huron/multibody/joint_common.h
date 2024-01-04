@@ -169,5 +169,7 @@ struct JointDescription {
   Eigen::VectorXd damping_;
 };
 
+std::ostream& operator<<(std::ostream &os, const JointDescription &jd);
+
 }  // namespace multibody
 }  // namespace huron

@@ -1,117 +1,120 @@
 #pragma once
 
-#include <eigen3/Eigen/Dense>
-#include <string>
+#include <vector>
 #include <memory>
 
 #include "huron/types.h"
-#include "huron/multibody/frame.h"
-#include "huron/multibody/joint_common.h"
 #include "huron/control_interfaces/joint.h"
+#include "joint_common.h"
 
 namespace huron {
 namespace multibody {
+namespace internal {
 
 class ModelImplInterface {
  public:
-  ModelImplInterface();
+  ModelImplInterface() = default;
   ModelImplInterface(const ModelImplInterface&) = delete;
   ModelImplInterface& operator=(const ModelImplInterface&) = delete;
   virtual ~ModelImplInterface() = default;
 
-  virtual void BuildFromUrdf(const std::string& urdf_path) = 0;
+  virtual void BuildFromUrdf(const std::string& urdf_path);
 
-  virtual std::vector<std::string> GetJointNames() const = 0;
-  virtual std::weak_ptr<Joint> GetJoint(const std::string& name) const = 0;
-  virtual std::weak_ptr<Joint> GetJoint(size_t joint_index) const = 0;
+  virtual const std::vector<std::string>& GetJointNames() const;
+  virtual std::weak_ptr<Joint> GetJoint(const std::string& name) const;
+  virtual std::weak_ptr<Joint> GetJoint(size_t joint_index) const;
+
+  virtual JointType GetJointType(size_t joint_index) const;
+  virtual JointIndex GetJointIndex(const std::string& joint_name) const = 0;
 
   virtual std::unique_ptr<JointDescription> GetJointDescription(
-    JointIndex joint_index) const = 0;
-  virtual std::unique_ptr<JointDescription> GetJointDescriptionFromChildFrame(
-    FrameIndex child_frame_index) const = 0;
+    JointIndex joint_index) const;
+  virtual std::unique_ptr<JointDescription> GetJointDescription(
+    const std::string& joint_name) const;
 
-  virtual const Eigen::Affine3d& GetJointTransformInWorld(size_t joint_index) const = 0;
+  virtual Eigen::Affine3d
+  GetJointTransformInWorld(size_t joint_index) const;
 
-  virtual const FrameIndex& GetFrameIndex(
-    const std::string& frame_name) const = 0;
-  virtual const Eigen::Affine3d& GetFrameTransform(FrameIndex from_frame,
-                                            FrameIndex to_frame) const = 0;
-  virtual const Eigen::Affine3d& GetFrameTransformInWorld(FrameIndex frame) const = 0;
+  virtual FrameIndex GetFrameIndex(
+    const std::string& frame_name) const;
+  virtual const std::string& GetFrameName(FrameIndex frame_index) const;
+  virtual FrameType GetFrameType(FrameIndex frame_index) const;
+  virtual Eigen::Affine3d GetFrameTransform(FrameIndex from_frame,
+                                            FrameIndex to_frame) const;
+  virtual Eigen::Affine3d GetFrameTransformInWorld(FrameIndex frame) const;
 
-  virtual const Eigen::VectorXd& NeutralConfiguration() const = 0;
+  virtual Eigen::Vector3d GetCenterOfMassPosition() const;
+
+  virtual Eigen::VectorXd NeutralConfiguration() const;
 
   /**
    * @brief Get the generalized accelerations of the model.
    */
-  virtual const Eigen::VectorXd& GetAccelerations() const = 0;
+  virtual const Eigen::VectorXd& GetAccelerations() const;
 
   /**
    * @brief Get the joint torques.
    */
-  virtual const Eigen::VectorXd& GetTorques() const = 0;
+  virtual const Eigen::VectorXd& GetTorques() const;
 
   /**
    * @brief Get the mass matrix with the cached value.
    */
-  virtual const Eigen::MatrixXd& GetMassMatrix() const = 0;
+  virtual const Eigen::MatrixXd& GetMassMatrix() const;
 
   /**
    * @brief Get the Coriolis matrix with the cached value.
    */
-  virtual const Eigen::MatrixXd& GetCoriolisMatrix() const = 0;
+  virtual const Eigen::MatrixXd& GetCoriolisMatrix() const;
 
   /**
    * @brief Get the nonlinear effects vector.
    */
-  virtual const Eigen::VectorXd& GetNonlinearEffects() const = 0;
+  virtual const Eigen::VectorXd& GetNonlinearEffects() const;
 
   /**
    * @brief Get the gravity vector.
    */
-  virtual const Eigen::VectorXd& GetGravity() const = 0;
+  virtual const Eigen::VectorXd& GetGravity() const;
 
   /**
    * @brief Get the spatial momentum with respect to the specified frame.
    */
-  virtual const huron::Vector6d& GetSpatialMomentum() const = 0;
+  virtual const huron::Vector6d& GetSpatialMomentum() const;
 
   /**
    * @brief Get the centroidal momentum.
    */
-  virtual const huron::Vector6d& GetCentroidalMomentum() const = 0;
+  virtual huron::Vector6d GetCentroidalMomentum() const;
 
   /**
    * @brief Get the centroidal momentum matrix with the cached value.
    */
-  virtual const huron::Matrix6Xd& GetCentroidalMatrix() const = 0;
+  virtual const huron::Matrix6Xd& GetCentroidalMatrix() const;
 
   virtual void ComputeAll(
     const Eigen::Ref<const Eigen::VectorXd>& q,
-    const Eigen::Ref<const Eigen::VectorXd>& v) = 0;
+    const Eigen::Ref<const Eigen::VectorXd>& v);
 
   virtual void ForwardKinematics(
-    const Eigen::Ref<const Eigen::VectorXd>& q) = 0;
+    const Eigen::Ref<const Eigen::VectorXd>& q);
   virtual void ForwardKinematics(
     const Eigen::Ref<const Eigen::VectorXd>& q,
-    const Eigen::Ref<const Eigen::VectorXd>& v) = 0;
+    const Eigen::Ref<const Eigen::VectorXd>& v);
   virtual void ForwardKinematics(
     const Eigen::Ref<const Eigen::VectorXd>& q,
     const Eigen::Ref<const Eigen::VectorXd>& v,
-    const Eigen::Ref<const Eigen::VectorXd>& a) = 0;
+    const Eigen::Ref<const Eigen::VectorXd>& a);
 
-  size_t num_joints() const { return num_joints_; }
-  size_t num_frames() const { return num_frames_; }
-  size_t num_positions() const { return num_positions_; }
-  size_t num_velocities() const { return num_velocities_; }
+  virtual bool is_built() const;
 
- protected:
-  size_t num_joints_;
-  size_t num_frames_;
-  size_t num_positions_;
-  size_t num_velocities_;
+  virtual size_t num_positions() const;
+  virtual size_t num_velocities() const;
+  virtual size_t num_joints() const;
+  virtual size_t num_frames() const;
 
-  virtual JointType GetJointType(size_t joint_index) const = 0;
 };
 
+}  // namespace internal
 }  // namespace multibody
 }  // namespace huron

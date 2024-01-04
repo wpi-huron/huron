@@ -1,15 +1,19 @@
-#include "huron/multibody/pinocchio_model.h"
+#include "huron/multibody/pinocchio_model_impl.h"
 #include "huron/exceptions/not_implemented_exception.h"
 
 namespace huron {
 namespace multibody {
 namespace internal {
 
-template <bool has_pinocchio>
-PinocchioModel<has_pinocchio>::PinocchioModel(const std::string& path_to_file)
-    : ModelBase() {
+struct PinocchioModelImpl::Impl {
+  int dummy;
+};
+
+PinocchioModelImpl::PinocchioModelImpl()
+    : ModelImplInterface() {
   throw NotImplementedException("Pinocchio not available!");
 }
+PinocchioModelImpl::~PinocchioModelImpl() = default;
 
 }  // namespace internal
 }  // namespace multibody
