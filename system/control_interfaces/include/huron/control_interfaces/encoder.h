@@ -5,9 +5,29 @@
 #include <utility>
 #include <memory>
 
-#include "generic_component.h"
+#include "huron/control_interfaces/sensor.h"
 
 namespace huron {
+
+class EncoderConfiguration : public Configuration {
+ private:
+  static const inline std::set<std::string> kEncoderValidKeys{};
+
+ public:
+  EncoderConfiguration(ConfigMap config_map,
+                       std::set<std::string> valid_keys)
+      : Configuration(config_map, [&valid_keys]() {
+                        std::set<std::string> tmp(kEncoderValidKeys);
+                        tmp.merge(valid_keys);
+                        return tmp;
+                      }()) {}
+
+  explicit EncoderConfiguration(ConfigMap config_map)
+      : EncoderConfiguration(config_map, {}) {}
+
+  EncoderConfiguration()
+      : EncoderConfiguration({}, {}) {}
+};
 
 /**
  * Abstract class for encoder
@@ -15,43 +35,23 @@ namespace huron {
  *
  * @ingroup control_interface
  */
-class Encoder : public GenericComponent {
+class Encoder : public Sensor {
  public:
-  class EncoderConfiguration : public Configuration {
-   private:
-    static const inline std::set<std::string> kEncoderValidKeys{};
-
-   public:
-    EncoderConfiguration(ConfigMap config_map,
-                         std::set<std::string> valid_keys)
-        : Configuration(config_map, [&valid_keys]() {
-                          std::set<std::string> tmp(kEncoderValidKeys);
-                          tmp.merge(valid_keys);
-                          return tmp;
-                        }()) {}
-
-    explicit EncoderConfiguration(ConfigMap config_map)
-        : EncoderConfiguration(config_map, {}) {}
-
-    EncoderConfiguration()
-        : EncoderConfiguration({}, {}) {}
-  };
-
   explicit Encoder(std::unique_ptr<EncoderConfiguration> config)
-    : GenericComponent(std::move(config)) {}
+    : Sensor(2, 1, std::move(config)) {}
   Encoder() : Encoder(std::make_unique<EncoderConfiguration>()) {}
   Encoder(const Encoder&) = delete;
   Encoder& operator=(const Encoder&) = delete;
   virtual ~Encoder() = default;
 
-  virtual float GetPosition() = 0;
-  virtual float GetVelocity() = 0;
-  virtual void Reset() = 0;
+  void GetNewState(Eigen::Ref<Eigen::MatrixXd> new_state) const override {
+    new_state = Eigen::Vector2d(GetPosition(), GetVelocity());
+  }
 
-  /**
-   * Gets a reference to the underlying driver.
-   */
-  virtual GenericComponent& GetDriver() = 0;
+  virtual double GetPosition() const = 0;
+  virtual double GetVelocity() const = 0;
+
+  virtual void Reset() = 0;
 };
 
 }  // namespace huron

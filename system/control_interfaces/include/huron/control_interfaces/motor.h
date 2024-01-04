@@ -6,52 +6,46 @@
 #include <utility>
 #include <memory>
 
-#include "moving_component.h"
+#include "huron/control_interfaces/actuator.h"
 
 namespace huron {
 
-/**
- * Abstract class for a motor.
- *
- * A motor takes in input value(s) and actuates accordingly. It does not
- * need to know its position or velocity; that is the job of encoders
- * and other sensors.
- *
- * @ingroup control_interfaces
- */
-class Motor : public MovingComponent {
+class MotorConfiguration : public ActuatorConfiguration {
+ private:
+  static const inline std::set<std::string> kMotorValidKeys{};
+
  public:
-  class MotorConfiguration : public Configuration {
-   private:
-    static const inline std::set<std::string> kMotorValidKeys{};
+  MotorConfiguration(ConfigMap config_map,
+                     std::set<std::string> valid_keys)
+      : ActuatorConfiguration(config_map, [&valid_keys]() {
+                        std::set<std::string> tmp(kMotorValidKeys);
+                        tmp.merge(valid_keys);
+                        return tmp;
+                      }()) {}
 
-   public:
-    MotorConfiguration(ConfigMap config_map,
-                       std::set<std::string> valid_keys)
-        : Configuration(config_map, [&valid_keys]() {
-                          std::set<std::string> tmp(kMotorValidKeys);
-                          tmp.merge(valid_keys);
-                          return tmp;
-                        }()) {}
+  explicit MotorConfiguration(ConfigMap config_map)
+      : MotorConfiguration(config_map, {}) {}
 
-    explicit MotorConfiguration(ConfigMap config_map)
-        : MotorConfiguration(config_map, {}) {}
+  MotorConfiguration()
+      : MotorConfiguration({}, {}) {}
+};
 
-    MotorConfiguration()
-        : MotorConfiguration({}, {}) {}
-  };
-
-  explicit Motor(std::unique_ptr<MotorConfiguration> config)
-      : MovingComponent(std::move(config)) {}
-  Motor() : Motor(std::make_unique<MotorConfiguration>()) {}
+class Motor : public Actuator {
+ public:
+  explicit Motor(std::unique_ptr<MotorConfiguration> config,
+                 double gear_ratio = 1.0)
+    : Actuator(1, std::move(config)) {}
+  explicit Motor(double gear_ratio)
+    : Motor(std::make_unique<MotorConfiguration>(), gear_ratio) {}
+  Motor() : Motor(1.0) {}
   Motor(const Motor&) = delete;
   Motor& operator=(const Motor&) = delete;
   ~Motor() override = default;
 
-  /**
-   * Gets a reference to the underlying driver.
-   */
-  virtual GenericComponent& GetDriver() = 0;
+  virtual bool Move(double value) = 0;
+
+ private:
+  double gear_ratio_;
 };
 
 }  // namespace huron

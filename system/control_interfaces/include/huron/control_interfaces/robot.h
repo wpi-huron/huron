@@ -6,57 +6,53 @@
 #include <utility>
 #include <memory>
 
-#include "configuration.h"
-#include "moving_group_component.h"
-#include "joint.h"
+#include "huron/control_interfaces/configuration.h"
+#include "huron/control_interfaces/generic_component.h"
+#include "huron/control_interfaces/moving_group.h"
+#include "huron/control_interfaces/joint.h"
+#include "huron/multibody/model.h"
+#include "huron/multibody/joint_common.h"
 
 namespace huron {
 
-class Robot : public MovingGroupComponent {
+class RobotConfiguration : public Configuration {
+ private:
+  static const inline std::set<std::string> kRobotValidKeys{};
+
  public:
-  class RobotConfiguration : public Configuration {
-   private:
-    static const inline std::set<std::string> kRobotValidKeys{};
+  RobotConfiguration(ConfigMap config_map,
+                     std::set<std::string> valid_keys)
+      : Configuration(config_map, [&valid_keys]() {
+                        std::set<std::string> tmp(kRobotValidKeys);
+                        tmp.merge(valid_keys);
+                        return tmp;
+                      }()) {}
 
-   public:
-    RobotConfiguration(ConfigMap config_map,
-                       std::set<std::string> valid_keys)
-        : Configuration(config_map, [&valid_keys]() {
-                          std::set<std::string> tmp(kRobotValidKeys);
-                          tmp.merge(valid_keys);
-                          return tmp;
-                        }()) {}
+  explicit RobotConfiguration(ConfigMap config_map)
+      : RobotConfiguration(config_map, {}) {}
 
-    explicit RobotConfiguration(ConfigMap config_map)
-        : RobotConfiguration(config_map, {}) {}
+  RobotConfiguration()
+      : RobotConfiguration({}, {}) {}
+};
 
-    RobotConfiguration()
-        : RobotConfiguration({}, {}) {}
-  };
-
+class Robot : public MovingGroup, public GenericComponent {
+  using Model = multibody::Model;
+ public:
   explicit Robot(std::unique_ptr<RobotConfiguration> config);
   Robot();
   Robot(const Robot&) = delete;
   Robot& operator=(const Robot&) = delete;
   ~Robot() override = default;
 
-  // Robot methods
-  virtual std::vector<double> GetJointPosition();
-  virtual std::vector<double> GetJointVelocity();
+  Model* const GetModel() { return model_.get(); }
 
-  virtual bool AddJoint(std::shared_ptr<Joint> joint);
-
-  // GenericComponent methods
-  void Initialize() override;
-  void SetUp() override;
-  void Terminate() override;
-
-  // MovingGroupComponent methods
-  bool Move(const std::vector<double>& values) override;
-  bool Stop() override;
+ protected:
+  Robot(std::unique_ptr<RobotConfiguration> config,
+        std::shared_ptr<Model> model);
+  explicit Robot(std::shared_ptr<Model> model);
 
  private:
-  std::vector<std::shared_ptr<Joint>> joints_;
+  std::shared_ptr<Model> model_;
 };
 
 }  // namespace huron

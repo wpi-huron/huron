@@ -5,82 +5,80 @@
 #include <set>
 #include <string>
 
-#include "motor.h"
-#include "moving_component.h"
-#include "encoder.h"
+#include "huron/multibody/joint_common.h"
+#include "huron/control_interfaces/configuration.h"
+#include "huron/control_interfaces/state_provider.h"
 
 namespace huron {
 
-/**
- * Abstract class representing a joint.
- *
- * Currently, the structure supports 1-DoF joints.
- *
- * @ingroup control_interfaces
- */
-class Joint : public MovingComponent {
+class Joint {
+  using JointDescription = huron::multibody::JointDescription;
+  using JointType = huron::multibody::JointType;
+
  public:
-  class JointConfiguration : public Configuration {
-   private:
-    static const inline std::set<std::string> kJointValidKeys{};
-
-   public:
-    JointConfiguration(ConfigMap config_map, std::set<std::string> valid_keys)
-        : Configuration(config_map,
-                        [&valid_keys]() {
-                          std::set<std::string> tmp(kJointValidKeys);
-                          tmp.merge(valid_keys);
-                          return tmp;
-                        }()) {}
-
-    explicit JointConfiguration(ConfigMap config_map)
-        : JointConfiguration(config_map, {}) {}
-
-    JointConfiguration()
-        : JointConfiguration({}, {}) {}
-  };
-
-  Joint(std::unique_ptr<Motor> motor, std::unique_ptr<Encoder> encoder,
-        std::unique_ptr<JointConfiguration> config);
-  Joint(std::unique_ptr<Motor> motor, std::unique_ptr<Encoder> encoder);
+  /**
+   * Creates a Joint that connects the specfied parent and child frames.
+   */
+  explicit Joint(std::unique_ptr<JointDescription> joint_desc,
+                 std::shared_ptr<StateProvider> state_provider = nullptr);
   Joint(const Joint&) = delete;
   Joint& operator=(const Joint&) = delete;
   virtual ~Joint() = default;
 
-  // GenericComponent interface
-  void Initialize() override;
-  void SetUp() override;
-  void Terminate() override;
-
-  // MoveComponent interface
-  bool Move(float value) override;
-  bool Move(const std::vector<float>& value) override;
-  bool Stop() override;
-
-  Motor& GetMotor() {
-    return *motor_.get();
-  }
-
-  Encoder& GetEncoder() {
-    return *encoder_.get();
+  void SetIndices(size_t id_q, size_t id_v) {
+    id_q_ = id_q;
+    id_v_ = id_v;
   }
 
   /**
-   * Gets the position of the joint.
+   * @brief Sets the state provider for this joint.
+   * @note The state provider must return a VectorXd with the correct format
+   * and size:
+   * \[ \begin{bmatrix} q \\ \dot{q} \end{bmatrix} \in \mathbb{R}^{nq + nv}\]
    */
-  virtual float GetPosition() = 0;
+  void SetStateProvider(std::shared_ptr<StateProvider> state_provider);
+
   /**
-   * Gets the velocity of the joint.
+   * @brief Updates the joint state from the state provider.
    */
-  virtual float GetVelocity() = 0;
-  /**
-   * Gets the acceleration of the joint.
-   */
-  virtual float GetAcceleration() = 0;
+  void UpdateState();
+
+  JointType GetJointType() const {
+    return jd_->type();
+  }
+
+  const Eigen::VectorXd& GetPositions() const {
+    return positions_;
+  }
+
+  const Eigen::VectorXd& GetVelocities() const {
+    return velocities_;
+  }
+
+  const JointDescription* const Info() const {
+    return jd_.get();
+  }
+
+  bool IsFullyConfigured() const {
+    return jd_->type() == JointType::kUnknown || state_provider_ != nullptr;
+  }
+
+  size_t id_q() const {
+    return id_q_;
+  }
+
+  size_t id_v() const {
+    return id_v_;
+  }
 
  protected:
-  std::unique_ptr<Motor> motor_;
-  std::unique_ptr<Encoder> encoder_;
+  std::unique_ptr<JointDescription> jd_;
+  Eigen::VectorXd positions_;
+  Eigen::VectorXd velocities_;
+  size_t id_q_;
+  size_t id_v_;
+
+  std::shared_ptr<StateProvider> state_provider_;
 };
 
 }  // namespace huron

@@ -4,7 +4,7 @@
 #include <memory>
 #include <utility>
 
-#include "generic_component.h"
+#include <eigen3/Eigen/Dense>
 
 namespace huron {
 
@@ -13,18 +13,12 @@ namespace huron {
  *
  * @ingroup control_interfaces
  */
-class MovingComponent : public GenericComponent {
+class MovingInterface {
  public:
-  explicit MovingComponent(std::unique_ptr<Configuration> config)
-    : GenericComponent(std::move(config)) {}
-
-  /**
-   * Moves the component by the specified input.
-   *
-   * @param value Input value.
-   * @return true if the operation is successful, false otherwise.
-   */
-  virtual bool Move(float value) = 0;
+  MovingInterface(size_t dim) : dim_(dim) {}
+  MovingInterface(const MovingInterface&) = delete;
+  MovingInterface& operator=(const MovingInterface&) = delete;
+  virtual ~MovingInterface() = default;
 
   /**
    * Moves the component by the specified input vector.
@@ -36,7 +30,9 @@ class MovingComponent : public GenericComponent {
    * @param value Input value vector.
    * @return true if the operation is successful, false otherwise.
    */
-  virtual bool Move(const std::vector<float>& values) = 0;
+  virtual bool Move(const std::vector<double>& values) = 0;
+
+  virtual bool Move(const Eigen::VectorXd& values) = 0;
 
   /**
    * Stops the component from moving.
@@ -44,6 +40,11 @@ class MovingComponent : public GenericComponent {
    * @return true if the operation is successful, false otherwise.
    */
   virtual bool Stop() = 0;
+
+  size_t dim() const { return dim_; }
+
+ protected:
+  size_t dim_;
 };
 
 }  // namespace huron
