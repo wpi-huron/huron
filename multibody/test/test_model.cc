@@ -55,7 +55,6 @@ TEST_F(TestModelPinocchio, TestKinematics) {
   auto link2_frame = robot.GetModel()->GetFrame("link2");
 
   Eigen::Affine3d expected_base_link_pose(Eigen::Affine3d::Identity());
-  expected_base_link_pose.translate(Eigen::Vector3d(0, 0, 1.0));
   Eigen::Affine3d expected_link1_pose =
     expected_base_link_pose * Eigen::Translation3d(0, 0.1, 1.95);
   Eigen::Affine3d expected_link2_pose =
@@ -63,6 +62,7 @@ TEST_F(TestModelPinocchio, TestKinematics) {
 
   robot.GetModel()->UpdateStates();
   robot.GetModel()->ForwardKinematics();
+
   Eigen::Affine3d base_link_pose =
     base_link_frame.lock()->GetTransformInWorld();
   Eigen::Affine3d link1_pose =

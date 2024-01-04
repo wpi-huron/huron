@@ -63,7 +63,8 @@ void Model::Finalize() {
     last_position_index += joint->Info()->num_positions();
     last_velocity_index += joint->Info()->num_velocities();
   }
-
+  // Resize the state vector
+  states_.resize(num_positions_ + num_velocities_);
   is_finalized_ = true;
 }
 
