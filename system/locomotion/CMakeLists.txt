@@ -1,7 +1,10 @@
 set(dir "${CMAKE_CURRENT_SOURCE_DIR}")
 
 list(APPEND SOURCE_FILES
-  "${dir}/src/zero_moment_point.cc")
+  "${dir}/src/zero_moment_point.cc"
+  "${dir}/src/zero_moment_point_fsr_array.cc"
+  "${dir}/src/zero_moment_point_ft_sensor.cc"
+  "${dir}/src/zero_moment_point_total.cc")
 FILE(GLOB_RECURSE HEADER_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )

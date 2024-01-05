@@ -1,89 +1,46 @@
 #pragma once
 
 #include <memory>
-#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 
-#include "huron/sensors/force_torque.h"
+#include "huron/sensors/force_torque_sensor.h"
 #include "huron/sensors/force_sensing_resistor_array.h"
+#include "huron/multibody/logical_frame.h"
 
 namespace huron {
 
-class ZeroMomentPointFTSensor;
-class ZeroMomentPointFSRArray;
-
 class ZeroMomentPoint {
  public:
-  static std::unique_ptr<ZeroMomentPointFTSensor> FromFTSensor(
-    std::shared_ptr<ForceTorqueSensor> ft_sensor);
-  static std::unique_ptr<ZeroMomentPointFSRArray> FromFSRArray(
-    std::shared_ptr<ForceSensingResistorArray> fsr_array);
+  ZeroMomentPoint(std::weak_ptr<const multibody::Frame> zmp_frame,
+                  double normal_force_threshold);
+  ZeroMomentPoint(const ZeroMomentPoint&) = delete;
+  ZeroMomentPoint& operator=(const ZeroMomentPoint&) = delete;
+  virtual ~ZeroMomentPoint() = default;
 
-  ZeroMomentPoint(std::string frame, double normal_force_threshold);
-
-  virtual void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) = 0;
-  inline void Compute(Eigen::Ref<Eigen::Vector2d> zmp) {
+  /**
+   * Evaluate the zero moment point in the ZMP frame based on the current
+   * sensor and joint states.
+   *
+   * @param zmp The zero moment point in the ZMP frame.
+   * @param fz The normal force.
+   */
+  virtual Eigen::Vector2d Eval(double& fz) = 0;
+  Eigen::Vector2d Eval() {
     double fz;
-    Compute(zmp, fz);
-  }
-  inline Eigen::Vector2d Compute() {
-    Eigen::Vector2d zmp;
-    Compute(zmp);
-    return zmp;
+    return Eval(fz);
   }
 
-  inline std::string GetFrame() const {
-    return frame_;
-  }
+  /**
+   * Convert the zero moment point from the 2D ZMP frame to the world frame.
+   *
+   * @param zmp The zero moment point in the ZMP frame.
+   * @return The zero moment point in the world frame.
+   */
+  Eigen::Affine3d ZmpToWorld(const Eigen::Vector2d& zmp) const;
 
  protected:
-  std::string frame_;
+  std::weak_ptr<const multibody::Frame> zmp_frame_;
   double normal_force_threshold_;
-};
-
-class ZeroMomentPointFTSensor : public ZeroMomentPoint {
- public:
-  ZeroMomentPointFTSensor(
-    std::string frame,
-    double normal_force_threshold,
-    const Eigen::Vector3d& sensor_position,
-    const Eigen::Vector3d& sensor_frame_zyx,
-    std::shared_ptr<ForceTorqueSensor> ft_sensor);
-
-  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
-
- private:
-  const Eigen::Vector3d sensor_position_;
-  const Eigen::Matrix<double, 6, 6> sensor_frame_rotation_;
-  std::shared_ptr<ForceTorqueSensor> ft_sensor_;
-};
-
-class ZeroMomentPointFSRArray : public ZeroMomentPoint {
- public:
-  ZeroMomentPointFSRArray(
-    std::string frame,
-    double normal_force_threshold,
-    const Eigen::VectorXd& sensor_x_positions,
-    const Eigen::VectorXd& sensor_y_positions,
-    std::shared_ptr<ForceSensingResistorArray> fsr_array);
-
-  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
-
- private:
-  const Eigen::VectorXd sensor_x_positions_;
-  const Eigen::VectorXd sensor_y_positions_;
-  std::shared_ptr<ForceSensingResistorArray> fsr_array_;
-};
-
-class ZeroMomentPointTotal : public ZeroMomentPoint {
- public:
-  ZeroMomentPointTotal(
-    std::string frame,
-    std::vector<std::shared_ptr<ZeroMomentPoint>> zmp_vector);
-    
-  void Compute(Eigen::Ref<Eigen::Vector2d> zmp, double& fz) override;
-
- private:
-  std::vector<std::shared_ptr<ZeroMomentPoint>> zmp_vector_;
 };
 
 }  // namespace huron
