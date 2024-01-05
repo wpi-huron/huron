@@ -4,24 +4,24 @@
 namespace huron {
 
 ForceSensingResistorArraySerial::ForceSensingResistorArraySerial(
-  std::string name,
-  size_t num_sensors,
-  std::unique_ptr<ForceSensingResistorArrayConfiguration> config,
+  const std::string& name,
+  std::weak_ptr<const multibody::Frame> frame,
+  const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array,
   std::shared_ptr<driver::serial::SerialBase> serial)
-  : ForceSensingResistorArray(name, num_sensors, std::move(config)),
+  : ForceSensingResistorArray(name, std::move(frame), fsr_array),
     serial_(std::move(serial)) {}
 
 ForceSensingResistorArraySerial::ForceSensingResistorArraySerial(
-  std::string name,
-  size_t num_sensors,
-  std::shared_ptr<driver::serial::SerialBase> serial)
-  : ForceSensingResistorArraySerial(
-      name,
-      num_sensors,
-      std::make_unique<ForceSensingResistorArrayConfiguration>(),
-      std::move(serial)) {}
+  const std::string& name,
+  std::weak_ptr<const multibody::Frame> frame,
+  const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array,
+  std::shared_ptr<driver::serial::SerialBase> serial,
+  std::unique_ptr<Configuration> config)
+  : ForceSensingResistorArray(name, std::move(frame),
+                              fsr_array, std::move(config)),
+    serial_(std::move(serial)) {}
 
-Eigen::VectorXd ForceSensingResistorArraySerial::GetValues() {
+void ForceSensingResistorArraySerial::RequestStateUpdate() {
   std::string msg;
   serial_->ReadLine(msg);
   std::vector<std::string> str_values = utils::split(msg, delimiter);
@@ -30,7 +30,15 @@ Eigen::VectorXd ForceSensingResistorArraySerial::GetValues() {
       values_[i-1] = std::stod(str_values[i]);
     }
   }
-  return Eigen::Map<Eigen::VectorXd>(values_.data(), values_.size());
+}
+
+Eigen::VectorXd ForceSensingResistorArraySerial::GetValue() const {
+  return values_;
+}
+
+Eigen::VectorXd ForceSensingResistorArraySerial::ReloadAndGetValue() {
+  RequestStateUpdate();
+  return values_;
 }
 
 void ForceSensingResistorArraySerial::Initialize() {
@@ -41,6 +49,7 @@ void ForceSensingResistorArraySerial::SetUp() {
 }
 
 void ForceSensingResistorArraySerial::Terminate() {
+  serial_->Close();
 }
 
 }  // namespace huron

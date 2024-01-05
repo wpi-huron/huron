@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "force_sensing_resistor_array.h"
+#include "huron/sensors/force_sensing_resistor_array.h"
 #include "huron/driver/serial/serial.h"
 
 namespace huron {
@@ -16,15 +16,16 @@ namespace huron {
 class ForceSensingResistorArraySerial : public ForceSensingResistorArray {
  public:
   ForceSensingResistorArraySerial(
-    std::string name,
-    size_t num_sensors,
-    std::unique_ptr<ForceSensingResistorArrayConfiguration> config,
+    const std::string& name,
+    std::weak_ptr<const multibody::Frame> frame,
+    const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array,
     std::shared_ptr<driver::serial::SerialBase> serial);
-
   ForceSensingResistorArraySerial(
-    std::string name,
-    size_t num_sensors,
-    std::shared_ptr<driver::serial::SerialBase> serial);
+    const std::string& name,
+    std::weak_ptr<const multibody::Frame> frame,
+    const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array,
+    std::shared_ptr<driver::serial::SerialBase> serial,
+    std::unique_ptr<Configuration> config);
 
   ForceSensingResistorArraySerial(
     const ForceSensingResistorArraySerial&) = delete;
@@ -32,9 +33,12 @@ class ForceSensingResistorArraySerial : public ForceSensingResistorArray {
   ForceSensingResistorArraySerial&
     operator=(const ForceSensingResistorArraySerial&) = delete;
 
-  virtual ~ForceSensingResistorArraySerial() = default;
+  ~ForceSensingResistorArraySerial() override = default;
 
-  Eigen::VectorXd GetValues() override;
+  void RequestStateUpdate() override;
+
+  Eigen::VectorXd GetValue() const override;
+  Eigen::VectorXd ReloadAndGetValue() override;
 
   void Initialize() override;
   void SetUp() override;

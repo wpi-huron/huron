@@ -2,61 +2,39 @@
 
 #include <eigen3/Eigen/Core>
 
-#include "huron/control_interfaces/generic_component.h"
+#include "huron/control_interfaces/sensor_with_frame.h"
+#include "huron/sensors/force_sensing_resistor.h"
 
 namespace huron {
 
-class ForceSensingResistorArrayConfiguration : public Configuration {
- private:
-  static const inline std::set<std::string> kFsrArrayValidKeys{};
-
- public:
-  ForceSensingResistorArrayConfiguration(
-    ConfigMap config_map,
-    std::set<std::string> valid_keys)
-      : Configuration(config_map, [&valid_keys]() {
-                        std::set<std::string> tmp(kFsrArrayValidKeys);
-                        tmp.merge(valid_keys);
-                        return tmp;
-                      }()) {}
-
-  explicit ForceSensingResistorArrayConfiguration(ConfigMap config_map)
-      : ForceSensingResistorArrayConfiguration(config_map, {}) {}
-
-  ForceSensingResistorArrayConfiguration()
-      : ForceSensingResistorArrayConfiguration({}, {}) {}
-};
-
-class ForceSensingResistorArray : public GenericComponent{
+class ForceSensingResistorArray : public SensorWithFrame {
  public:
   ForceSensingResistorArray(
-    std::string name,
-    size_t num_sensors,
-    std::unique_ptr<ForceSensingResistorArrayConfiguration> config)
-    : GenericComponent(std::move(config)),
-      name_(name),
-      num_sensors_(num_sensors),
-      values_(std::vector<double>(num_sensors)) {}
-
-  explicit ForceSensingResistorArray(std::string name, size_t num_sensors)
-    : ForceSensingResistorArray(
-        name,
-        num_sensors,
-        std::make_unique<ForceSensingResistorArrayConfiguration>()) {}
+    const std::string& name,
+    std::weak_ptr<const multibody::Frame> frame,
+    const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array);
+  ForceSensingResistorArray(
+    const std::string& name,
+    std::weak_ptr<const multibody::Frame> frame,
+    const std::vector<std::shared_ptr<ForceSensingResistor>>& fsr_array,
+    std::unique_ptr<Configuration> config);
 
   ForceSensingResistorArray(const ForceSensingResistorArray&) = delete;
-
   ForceSensingResistorArray&
     operator=(const ForceSensingResistorArray&) = delete;
+  ~ForceSensingResistorArray() override = default;
 
-  virtual ~ForceSensingResistorArray() = default;
+  void RequestStateUpdate() override;
 
-  virtual Eigen::VectorXd GetValues() = 0;
+  void GetNewState(Eigen::Ref<Eigen::MatrixXd> new_state) const override;
 
+  Eigen::Affine3d GetSensorPose(size_t index) const;
+
+  size_t num_sensors() const { return fsr_array_.size(); }
  protected:
   std::string name_;
-  size_t num_sensors_;
-  std::vector<double> values_;
+  Eigen::VectorXd values_;
+  std::vector<std::shared_ptr<ForceSensingResistor>> fsr_array_;
 };
 
 }  // namespace huron
