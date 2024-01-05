@@ -46,6 +46,20 @@ class Robot : public MovingGroup, public GenericComponent {
 
   Model* const GetModel() { return model_.get(); }
 
+  void RegisterStateProvider(std::shared_ptr<StateProvider> state_provider,
+                             bool is_joint_state_provider = false);
+
+  /**
+   * Calls RequestStateUpdate() on all the registered state providers.
+   */
+  void UpdateAllStates();
+
+  /**
+   * Calls RequestStateUpdate() on all the registered state providers for
+   * joints.
+   */
+  void UpdateJointStates();
+
  protected:
   Robot(std::unique_ptr<RobotConfiguration> config,
         std::shared_ptr<Model> model);
@@ -53,6 +67,7 @@ class Robot : public MovingGroup, public GenericComponent {
 
  private:
   std::shared_ptr<Model> model_;
+  std::vector<std::shared_ptr<StateProvider>> non_joint_state_providers_;
 };
 
 }  // namespace huron
