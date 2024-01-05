@@ -21,13 +21,15 @@ Sensor::Sensor(int rows, int cols)
   : GenericComponent(),
     StateProvider(rows, cols) {}
 
-Eigen::VectorXd Sensor::GetValue(bool refresh) {
-  if (refresh) {
-    RequestStateUpdate();
-  }
+Eigen::VectorXd Sensor::GetValue() const {
   Eigen::VectorXd tmp;
   GetNewState(tmp);
   return tmp;
+}
+
+Eigen::VectorXd Sensor::ReloadAndGetValue() {
+  RequestStateUpdate();
+  return GetValue();
 }
 
 }  // namespace huron

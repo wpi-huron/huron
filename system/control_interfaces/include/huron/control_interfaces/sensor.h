@@ -21,7 +21,8 @@ class Sensor : public GenericComponent, public StateProvider {
   /**
    * @brief Get the sensor value.
    */
-  virtual Eigen::VectorXd GetValue(bool refresh = false);
+  virtual Eigen::VectorXd GetValue() const;
+  virtual Eigen::VectorXd ReloadAndGetValue();
 };
 
 }  // namespace huron
