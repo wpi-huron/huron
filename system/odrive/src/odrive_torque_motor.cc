@@ -9,11 +9,22 @@ namespace huron {
 namespace odrive {
 
 TorqueMotor::TorqueMotor(
-  std::unique_ptr<huron::TorqueMotor::TorqueMotorConfiguration> config,
+  std::unique_ptr<TorqueMotorConfiguration> config,
+  std::shared_ptr<ODrive> odrive,
+  double gear_ratio)
+  : huron::TorqueMotor(std::move(config), gear_ratio),
+    odrive_(std::move(odrive)) {}
+
+TorqueMotor::TorqueMotor(
+  std::shared_ptr<ODrive> odrive,
+  double gear_ratio)
+  : huron::TorqueMotor(gear_ratio),
+    odrive_(std::move(odrive)) {}
+
+TorqueMotor::TorqueMotor(
   std::shared_ptr<ODrive> odrive)
-    : huron::TorqueMotor(std::move(config)), odrive_(std::move(odrive)) {}
-TorqueMotor::TorqueMotor(std::shared_ptr<ODrive> odrive)
-    : odrive_(std::move(odrive)) {}
+  : huron::TorqueMotor(),
+    odrive_(std::move(odrive)) {}
 
 void TorqueMotor::Initialize() {
   odrive_->Initialize();
@@ -35,12 +46,18 @@ void TorqueMotor::Terminate() {
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-bool TorqueMotor::Move(float value) {
+bool TorqueMotor::Move(double value) {
   return odrive_->SetInputTorque(value);
 }
 
-bool TorqueMotor::Move(const std::vector<float>& values) {
-  throw NotImplementedException();
+bool TorqueMotor::Move(const std::vector<double>& values) {
+  assert(values.size() == 1);
+  return odrive_->SetInputTorque(values[0]);
+}
+
+bool TorqueMotor::Move(const Eigen::VectorXd& values) {
+  assert(values.size() == 1);
+  return odrive_->SetInputTorque(values[0]);
 }
 
 bool TorqueMotor::Stop() {
