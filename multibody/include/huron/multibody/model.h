@@ -82,20 +82,23 @@ class Model : public std::enable_shared_from_this<Model> {
   std::weak_ptr<const Frame> GetFrame(FrameIndex index) const;
   std::weak_ptr<const Frame> GetFrame(const std::string& name) const;
 
-  void BuildFromUrdf(const std::string& urdf_path);
+  void BuildFromUrdf(const std::string& urdf_path,
+                     JointType root_joint_type = JointType::kFixed);
 
   /**
    * Performs final configuration and checks the validity of the model:
    * - Checks if all joints are added to the model.
    * - Adjusts the joint state indices in the states vector.
+   * This method also sets the initial state [q, v] of the model.
    * @throws std::runtime_error if the model is not valid.
    */
+  void Finalize(const Eigen::VectorXd& initial_state);
   void Finalize();
 
   /**
    * Updates the joint states [q, v] of the model.
    */
-  void UpdateStates();
+  void UpdateJointStates();
 
   void SetDefaultModelImpl(size_t index) {
     default_impl_index_ = index;
@@ -218,6 +221,7 @@ class Model : public std::enable_shared_from_this<Model> {
   size_t default_impl_index_ = 0;
   std::vector<std::unique_ptr<ModelImplInterface>> impls_;
   std::vector<std::shared_ptr<Joint>> joints_;
+  /// \brief The joint states [q, v].
   Eigen::VectorXd states_;
   size_t num_positions_ = 0;
   size_t num_velocities_ = 0;

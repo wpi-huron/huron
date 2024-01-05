@@ -19,7 +19,8 @@ class PinocchioModelImpl : public ModelImplInterface {
 
   static bool IsAvailable() { return true; }
 
-  void BuildFromUrdf(const std::string& urdf_path) override;
+  void BuildFromUrdf(const std::string& urdf_path,
+                     JointType root_joint_type) override;
 
   const std::vector<std::string>& GetJointNames() const override;
   std::weak_ptr<Joint> GetJoint(const std::string& name) const override;

@@ -60,7 +60,7 @@ TEST_F(TestModelPinocchio, TestKinematics) {
   Eigen::Affine3d expected_link2_pose =
     expected_link1_pose * Eigen::Translation3d(0, 0.1, 0.9);
 
-  robot.GetModel()->UpdateStates();
+  robot.GetModel()->UpdateJointStates();
   robot.GetModel()->ForwardKinematics();
 
   Eigen::Affine3d base_link_pose =

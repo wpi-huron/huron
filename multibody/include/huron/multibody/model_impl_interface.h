@@ -18,7 +18,8 @@ class ModelImplInterface {
   ModelImplInterface& operator=(const ModelImplInterface&) = delete;
   virtual ~ModelImplInterface() = default;
 
-  virtual void BuildFromUrdf(const std::string& urdf_path);
+  virtual void BuildFromUrdf(const std::string& urdf_path,
+                             JointType root_joint_type);
 
   virtual const std::vector<std::string>& GetJointNames() const;
   virtual std::weak_ptr<Joint> GetJoint(const std::string& name) const;

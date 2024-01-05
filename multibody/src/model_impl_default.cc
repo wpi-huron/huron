@@ -4,7 +4,8 @@ namespace huron {
 namespace multibody {
 namespace internal {
 
-void ModelImplInterface::BuildFromUrdf(const std::string& urdf_path) {
+void ModelImplInterface::BuildFromUrdf(const std::string& urdf_path,
+                                       JointType root_joint_type) {
   throw NotImplementedException();
 }
 

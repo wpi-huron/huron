@@ -38,8 +38,25 @@ PinocchioModelImpl::PinocchioModelImpl()
 
 PinocchioModelImpl::~PinocchioModelImpl() = default;
 
-void PinocchioModelImpl::BuildFromUrdf(const std::string& urdf_path) {
-  pinocchio::urdf::buildModel(urdf_path, impl_->model_);
+void PinocchioModelImpl::BuildFromUrdf(const std::string& urdf_path,
+                                       JointType root_joint_type) {
+  pinocchio::Model::JointModel joint_model;
+  if (root_joint_type == JointType::kFixed) {
+    pinocchio::urdf::buildModel(urdf_path, impl_->model_);
+  } else {
+    switch (root_joint_type) {
+      case JointType::kFreeFlyer:
+        joint_model = pinocchio::JointModelFreeFlyer();
+        break;
+      case JointType::kPlanar:
+        joint_model = pinocchio::JointModelPlanar();
+        break;
+      default:
+        throw std::runtime_error("Unsupported root joint type.");
+        break;
+    }
+    pinocchio::urdf::buildModel(urdf_path, joint_model, impl_->model_);
+  }
   impl_->data_ = pinocchio::Data(impl_->model_);
   num_positions_ = impl_->model_.nq;
   num_velocities_ = impl_->model_.nv;

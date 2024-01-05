@@ -18,13 +18,14 @@ internal::ModelImplInterface const * Model::GetModelImpl(size_t index) const {
   return impls_[index].get();
 }
 
-void Model::BuildFromUrdf(const std::string& urdf_path) {
+void Model::BuildFromUrdf(const std::string& urdf_path,
+                          JointType root_joint_type) {
   assert(!is_finalized_);
   if (impls_.empty()) {
     throw std::runtime_error("No model implementations.");
   }
   for (auto& impl : impls_) {
-    impl->BuildFromUrdf(urdf_path);
+    impl->BuildFromUrdf(urdf_path, root_joint_type);
   }
   num_positions_ = impls_[default_impl_index_]->num_positions();
   num_velocities_ = impls_[default_impl_index_]->num_velocities();
@@ -52,7 +53,7 @@ void Model::BuildFromUrdf(const std::string& urdf_path) {
   is_constructed_ = true;
 }
 
-void Model::Finalize() {
+void Model::Finalize(const Eigen::VectorXd& initial_state) {
   assert(is_constructed_);
   // Check if all joints are added to the model, and set the joint indices.
   size_t last_position_index = 0, last_velocity_index = 0;
@@ -63,9 +64,18 @@ void Model::Finalize() {
     last_position_index += joint->Info()->num_positions();
     last_velocity_index += joint->Info()->num_velocities();
   }
-  // Resize the state vector
-  states_.resize(num_positions_ + num_velocities_);
+  // // Resize the state vector
+  // states_.resize(num_positions_ + num_velocities_);
+  // Set the initial state
+  assert((initial_state.size() == num_positions_ + num_velocities_) &&
+         "The initial state dimension does not match the model.");
+  states_ = initial_state;
   is_finalized_ = true;
+}
+
+void Model::Finalize() {
+  assert(is_constructed_);
+  Model::Finalize(Eigen::VectorXd::Zero(num_positions_ + num_velocities_));
 }
 
 Joint* const Model::GetJoint(JointIndex index) {
@@ -101,7 +111,7 @@ void Model::DoAddFrameFromModelDescription(FrameIndex idx,
   frame_name_to_index_[name] = idx;
 }
 
-void Model::UpdateStates() {
+void Model::UpdateJointStates() {
   assert(is_finalized_);
   for (auto& joint : joints_) {
     if (joint->Info()->type() == JointType::kUnknown) {

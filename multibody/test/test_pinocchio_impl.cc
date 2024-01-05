@@ -5,8 +5,10 @@
 class PinocchioModelImplTest : public testing::Test {
  protected:
   void SetUp() override {
-    impl_rrbot.BuildFromUrdf("rrbot.urdf");
-    impl_huron.BuildFromUrdf("huron.urdf");
+    impl_rrbot.BuildFromUrdf("rrbot.urdf",
+                             huron::multibody::JointType::kFixed);
+    impl_huron.BuildFromUrdf("huron.urdf",
+                             huron::multibody::JointType::kFreeFlyer);
   }
 
   huron::multibody::internal::PinocchioModelImpl impl_rrbot;
@@ -34,23 +36,24 @@ TEST_F(PinocchioModelImplTest, RRBotGeneralChecks) {
 
 TEST_F(PinocchioModelImplTest, HURONGeneralChecks) {
   EXPECT_EQ(impl_huron.GetJointIndex("universe"), 0);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_yaw_joint"), 1);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_roll_joint"), 2);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_pitch_joint"), 3);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_knee_pitch_joint"), 4);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_ankle_pitch_joint"), 5);
-  EXPECT_EQ(impl_huron.GetJointIndex("l_ankle_roll_joint"), 6);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_yaw_joint"), 7);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_roll_joint"), 8);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_pitch_joint"), 9);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_knee_pitch_joint"), 10);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_ankle_pitch_joint"), 11);
-  EXPECT_EQ(impl_huron.GetJointIndex("r_ankle_roll_joint"), 12);
-  // non-fixed joints + universe
-  EXPECT_EQ(impl_huron.num_joints(), 12 + 1);
+  EXPECT_EQ(impl_huron.GetJointIndex("root_joint"), 1);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_yaw_joint"), 2);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_roll_joint"), 3);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_hip_pitch_joint"), 4);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_knee_pitch_joint"), 5);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_ankle_pitch_joint"), 6);
+  EXPECT_EQ(impl_huron.GetJointIndex("l_ankle_roll_joint"), 7);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_yaw_joint"), 8);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_roll_joint"), 9);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_hip_pitch_joint"), 10);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_knee_pitch_joint"), 11);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_ankle_pitch_joint"), 12);
+  EXPECT_EQ(impl_huron.GetJointIndex("r_ankle_roll_joint"), 13);
+  // non-fixed joints + root_joint + universe
+  EXPECT_EQ(impl_huron.num_joints(), 12 + 1 + 1);
   // non-fixed joinnts + universe + root_joint + fixed joints + links
   EXPECT_EQ(impl_huron.num_frames(), 12 + 1 + 1 + 4 + 17);
-  EXPECT_EQ(impl_huron.num_positions(), 12);
-  EXPECT_EQ(impl_huron.num_velocities(), 12);
+  EXPECT_EQ(impl_huron.num_positions(), 12 + 7);
+  EXPECT_EQ(impl_huron.num_velocities(), 12 + 6);
 }
 #endif
