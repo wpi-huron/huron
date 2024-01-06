@@ -4,28 +4,25 @@
 
 #include "robot.h"
 #include "huron/locomotion/zero_moment_point.h"
-#include "huron/rigid_body/model.h"
 
 namespace huron {
 
 class LeggedRobot : public Robot {
  public:
-  LeggedRobot(std::unique_ptr<rigid_body::Model> model,
-              std::unique_ptr<RobotConfiguration> config,
-              std::unique_ptr<ZeroMomentPoint> zmp);
-  explicit LeggedRobot(std::unique_ptr<ZeroMomentPoint> zmp);
+  explicit LeggedRobot(std::unique_ptr<RobotConfiguration> config);
+  LeggedRobot();
+  LeggedRobot(const LeggedRobot&) = delete;
+  LeggedRobot& operator=(const LeggedRobot&) = delete;
+  ~LeggedRobot() override = default;
 
+  void InitializeZmp(std::shared_ptr<ZeroMomentPoint> zmp);
   /**
    * Computes the Center of Mass in Base frame.
    */
-  Eigen::Affine3d ComputeCenterOfMass();
-  Eigen::Affine3d ComputeCenterOfMassInWorldFrame();
-
-  Eigen::Vector2d ComputeZeroMomentPoint();
+  Eigen::Vector2d EvalZeroMomentPoint();
 
  private:
-  rigid_body::Frame
-  std::unique_ptr<ZeroMomentPoint> zmp_;
+  std::shared_ptr<ZeroMomentPoint> zmp_;
 };
 
 }  // namespace huron

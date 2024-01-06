@@ -1,5 +1,4 @@
 #include "huron/locomotion/zero_moment_point_ft_sensor.h"
-#include <iostream>
 
 namespace huron {
 
@@ -19,7 +18,6 @@ Eigen::Vector2d ZeroMomentPointFTSensor::Eval(double& fz) {
     Eigen::Affine3d zmp_to_sensor = zmp_frame_.lock()->GetTransformToFrame(
       *ft_sensor->GetSensorFrame().lock());
     Eigen::Affine3d zmp_frame_pose = zmp_frame_.lock()->GetTransformInWorld();
-    std::cout << "sensor position:\n" << zmp_to_sensor.translation().transpose() << std::endl;
     Vector6d w = ft_sensor->GetValue();
     w.segment(0, 3) = zmp_to_sensor.rotation() * w.segment(0, 3);
     w.segment(3, 3) = zmp_to_sensor.rotation() * w.segment(3, 3);

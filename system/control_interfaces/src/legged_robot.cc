@@ -2,15 +2,18 @@
 
 namespace huron {
 
-LeggedRobot::LeggedRobot(std::unique_ptr<RobotConfiguration> config,
-                         std::unique_ptr<ZeroMomentPoint> zmp)
-  : Robot(std::move(config)), zmp_(std::move(zmp)) {}
+LeggedRobot::LeggedRobot(std::unique_ptr<RobotConfiguration> config)
+  : Robot(std::move(config)) {}
 
-LeggedRobot::LeggedRobot(std::unique_ptr<ZeroMomentPoint> zmp)
-  : LeggedRobot(std::make_unique<RobotConfiguration>(), std::move(zmp)) {}
+LeggedRobot::LeggedRobot()
+  : Robot() {}
 
-Eigen::Vector2d LeggedRobot::ComputeZeroMomentPoint() {
-  return zmp_->Compute();
+void LeggedRobot::InitializeZmp(std::shared_ptr<ZeroMomentPoint> zmp) {
+  zmp_ = std::move(zmp);
+}
+
+Eigen::Vector2d LeggedRobot::EvalZeroMomentPoint() {
+  return zmp_->Eval();
 }
 
 }  // namespace huron
