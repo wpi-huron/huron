@@ -9,6 +9,9 @@ class ZeroMomentPointTotal : public ZeroMomentPoint {
   ZeroMomentPointTotal(
     std::weak_ptr<const multibody::Frame> zmp_frame,
     const std::vector<std::shared_ptr<ZeroMomentPoint>>& zmp_vector);
+  ZeroMomentPointTotal(const ZeroMomentPointTotal&) = delete;
+  ZeroMomentPointTotal& operator=(const ZeroMomentPointTotal&) = delete;
+  ~ZeroMomentPointTotal() override = default;
     
   Eigen::Vector2d Eval(double& fz) override;
 

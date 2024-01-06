@@ -4,7 +4,6 @@
 #include "huron/sensors/force_torque_sensor.h"
 #include "huron/control_interfaces/constant_state_provider.h"
 #include "huron/locomotion/zero_moment_point_ft_sensor.h"
-#include "huron/locomotion/zero_moment_point_total.h"
 
 using namespace huron;  //NOLINT
 
@@ -116,11 +115,6 @@ TEST_F(TestZeroMomentPointFt, TestGeneral) {
   EXPECT_EQ(robot.GetModel()->num_velocities(), 12 + 6);
 }
 
-/**
- * Note: This test is using the FT sensor frame in Huron URDF. The order of
- * forces in the wrench can be found by investigating the correct ft_sensor
- * topic.
- */
 TEST_F(TestZeroMomentPointFt, TestZeroForce) {
   // Parameters
   double expected_fz, computed_fz;
