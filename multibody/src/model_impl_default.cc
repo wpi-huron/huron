@@ -60,6 +60,10 @@ Eigen::Affine3d ModelImplInterface::GetFrameTransformInWorld(FrameIndex frame) c
   throw NotImplementedException();
 }
 
+Eigen::Vector3d ModelImplInterface::EvalCenterOfMassPosition() {
+  throw NotImplementedException();
+}
+
 Eigen::Vector3d ModelImplInterface::GetCenterOfMassPosition() const {
   throw NotImplementedException();
 }

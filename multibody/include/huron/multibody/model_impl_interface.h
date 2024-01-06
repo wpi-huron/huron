@@ -44,6 +44,7 @@ class ModelImplInterface {
                                             FrameIndex to_frame) const;
   virtual Eigen::Affine3d GetFrameTransformInWorld(FrameIndex frame) const;
 
+  virtual Eigen::Vector3d EvalCenterOfMassPosition();
   virtual Eigen::Vector3d GetCenterOfMassPosition() const;
 
   virtual Eigen::VectorXd NeutralConfiguration() const;

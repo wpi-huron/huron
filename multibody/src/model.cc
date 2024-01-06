@@ -160,6 +160,16 @@ Eigen::VectorXd Model::NeutralConfiguration() const {
   return impls_[default_impl_index_]->NeutralConfiguration();
 }
 
+Eigen::Vector3d Model::EvalCenterOfMassPosition() {
+  assert(is_finalized_);
+  return impls_[default_impl_index_]->EvalCenterOfMassPosition();
+}
+
+Eigen::Vector3d Model::GetCenterOfMassPosition() const {
+  assert(is_finalized_);
+  return impls_[default_impl_index_]->GetCenterOfMassPosition();
+}
+
 const Eigen::VectorXd& Model::GetAccelerations() const {
   assert(is_finalized_);
   return impls_[default_impl_index_]->GetAccelerations();

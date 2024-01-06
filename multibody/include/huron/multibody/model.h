@@ -119,6 +119,9 @@ class Model : public std::enable_shared_from_this<Model> {
 
   Eigen::VectorXd NeutralConfiguration() const;
 
+  Eigen::Vector3d EvalCenterOfMassPosition();
+  Eigen::Vector3d GetCenterOfMassPosition() const;
+
   /**
    * @brief Get the generalized accelerations of the model.
    */

@@ -10,6 +10,7 @@
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 #include "pinocchio/algorithm/kinematics.hpp"
 #include "pinocchio/algorithm/frames.hpp"
+#include "pinocchio/algorithm/center-of-mass.hpp"
 
 namespace huron {
 namespace multibody {
@@ -162,6 +163,10 @@ PinocchioModelImpl::GetFrameTransform(FrameIndex from_frame,
 Eigen::Affine3d PinocchioModelImpl::GetFrameTransformInWorld(FrameIndex frame) const {
   pinocchio::updateFramePlacement(impl_->model_, impl_->data_, (size_t) frame);
   return Se3ToAffine3d(impl_->data_.oMf[frame]);
+}
+
+Eigen::Vector3d PinocchioModelImpl::EvalCenterOfMassPosition() {
+  return pinocchio::centerOfMass(impl_->model_, impl_->data_);
 }
 
 Eigen::Vector3d PinocchioModelImpl::GetCenterOfMassPosition() const {

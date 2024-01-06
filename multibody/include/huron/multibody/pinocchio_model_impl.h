@@ -45,6 +45,7 @@ class PinocchioModelImpl : public ModelImplInterface {
   Eigen::Affine3d
   GetFrameTransformInWorld(FrameIndex frame) const override;
 
+  Eigen::Vector3d EvalCenterOfMassPosition() override;
   Eigen::Vector3d GetCenterOfMassPosition() const override;
 
   Eigen::VectorXd NeutralConfiguration() const override;
