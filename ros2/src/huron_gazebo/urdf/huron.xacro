@@ -12,10 +12,14 @@
 
     <gazebo>
         <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
-            <frameName>map</frameName>
-            <bodyName>base_link</bodyName>
-            <topicName>/huron/odom</topicName>
-            <updateRate>100.0</updateRate>
+          <ros>
+            <namespace>p3d</namespace>
+            <remapping>odom:=odom</remapping>
+          </ros>
+          <frame_name>map</frame_name>
+          <body_name>dummy</body_name>
+          <!-- <topicName>/huron/odom</topicName> -->
+          <updateRate>100.0</updateRate>
         </plugin>
     </gazebo>
 
