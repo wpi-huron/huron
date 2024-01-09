@@ -44,7 +44,8 @@ class HuronNode : public rclcpp::Node {
                                 size_t id_v, size_t dim_v) const {
     Eigen::VectorXd state(dim_q + dim_v);
     state.segment(0, dim_q) = joint_state_.segment(id_q, dim_q);
-    state.segment(dim_q, dim_v) = joint_state_.segment(id_v, dim_v);
+    state.segment(dim_q, dim_v) = joint_state_.segment(kNumPositions + id_v,
+                                                       dim_v);
     return state;
   }
 

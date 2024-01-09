@@ -58,19 +58,19 @@ void HuronNode::JointStatesCallback(
 
 void HuronNode::OdomCallback(
   std::shared_ptr<const nav_msgs::msg::Odometry> msg) {
-  joint_state_.segment(0, 13) << msg->pose.pose.position.x,
-                                 msg->pose.pose.position.y,
-                                 msg->pose.pose.position.z,
-                                 msg->pose.pose.orientation.x,
-                                 msg->pose.pose.orientation.y,
-                                 msg->pose.pose.orientation.z,
-                                 msg->pose.pose.orientation.w,
-                                 msg->twist.twist.linear.x,
-                                 msg->twist.twist.linear.y,
-                                 msg->twist.twist.linear.z,
-                                 msg->twist.twist.angular.x,
-                                 msg->twist.twist.angular.y,
-                                 msg->twist.twist.angular.z;
+  joint_state_.segment(0, 7) << msg->pose.pose.position.x,
+                                msg->pose.pose.position.y,
+                                msg->pose.pose.position.z,
+                                msg->pose.pose.orientation.x,
+                                msg->pose.pose.orientation.y,
+                                msg->pose.pose.orientation.z,
+                                msg->pose.pose.orientation.w;
+  joint_state_.segment(kNumPositions, 6) << msg->twist.twist.linear.x,
+                                            msg->twist.twist.linear.y,
+                                            msg->twist.twist.linear.z,
+                                            msg->twist.twist.angular.x,
+                                            msg->twist.twist.angular.y,
+                                            msg->twist.twist.angular.z;
 }
 
 void HuronNode::LeftFtSensorCallback(
@@ -85,7 +85,7 @@ void HuronNode::LeftFtSensorCallback(
 
 void HuronNode::RightFtSensorCallback(
   std::shared_ptr<const geometry_msgs::msg::WrenchStamped> msg) {
-  wrenches_[0] << msg->wrench.force.x,
+  wrenches_[1] << msg->wrench.force.x,
                   msg->wrench.force.y,
                   msg->wrench.force.z,
                   msg->wrench.torque.x,
