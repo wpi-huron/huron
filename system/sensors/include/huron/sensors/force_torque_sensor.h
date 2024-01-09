@@ -14,6 +14,9 @@ class ForceTorqueSensor : public SensorWithFrame {
   ForceTorqueSensor(bool reverse_wrench_direction,
                     std::weak_ptr<const multibody::Frame> frame,
                     std::unique_ptr<Configuration> config);
+  ForceTorqueSensor(const ForceTorqueSensor&) = delete;
+  ForceTorqueSensor& operator=(const ForceTorqueSensor&) = delete;
+  ~ForceTorqueSensor() override = default;
 
   void RequestStateUpdate() override;
 

@@ -13,7 +13,7 @@ class ForceSensingResistor : public SensorWithFrame {
                        std::unique_ptr<Configuration> config);
   ForceSensingResistor(const ForceSensingResistor&) = delete;
   ForceSensingResistor& operator=(const ForceSensingResistor&) = delete;
-  virtual ~ForceSensingResistor() = default;
+  ~ForceSensingResistor() override = default;
 };
 
 }  // namespace huron
