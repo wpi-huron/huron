@@ -60,6 +60,10 @@ class Robot : public MovingGroup, public GenericComponent {
    */
   void UpdateJointStates();
 
+  const Eigen::VectorBlock<const Eigen::VectorXd> GetJointPositions() const;
+
+  const Eigen::VectorBlock<const Eigen::VectorXd> GetJointVelocities() const;
+
  protected:
   Robot(std::unique_ptr<RobotConfiguration> config,
         std::shared_ptr<Model> model);

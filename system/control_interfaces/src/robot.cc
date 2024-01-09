@@ -36,4 +36,14 @@ void Robot::UpdateJointStates() {
   model_->UpdateJointStates();
 }
 
+const Eigen::VectorBlock<const Eigen::VectorXd>
+Robot::GetJointPositions() const {
+  return model_->GetPositions();
+}
+
+const Eigen::VectorBlock<const Eigen::VectorXd>
+Robot::GetJointVelocities() const {
+  return model_->GetVelocities();
+}
+
 }  // namespace huron
