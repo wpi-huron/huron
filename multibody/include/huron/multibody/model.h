@@ -122,6 +122,10 @@ class Model : public std::enable_shared_from_this<Model> {
   Eigen::Vector3d EvalCenterOfMassPosition();
   Eigen::Vector3d GetCenterOfMassPosition() const;
 
+  const Eigen::VectorBlock<const Eigen::VectorXd> GetPositions() const;
+
+  const Eigen::VectorBlock<const Eigen::VectorXd> GetVelocities() const;
+
   /**
    * @brief Get the generalized accelerations of the model.
    */

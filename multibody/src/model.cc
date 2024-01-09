@@ -37,11 +37,16 @@ void Model::BuildFromUrdf(const std::string& urdf_path,
       impls_[default_impl_index_]->num_frames());
 
   auto joint_names = impls_[default_impl_index_]->GetJointNames();
+  size_t last_position_index = 0, last_velocity_index = 0;
   for (auto i = 0; i < joints_.size(); ++i) {
     auto jd_tmp_ptr = 
       impls_[default_impl_index_]->GetJointDescription(joint_names[i]);
     // Add joint
     AddJoint(i, std::move(jd_tmp_ptr));
+    // Set id_q and id_v
+    joints_[i]->SetIndices(last_position_index, last_velocity_index);
+    last_position_index += joints_[i]->Info()->num_positions();
+    last_velocity_index += joints_[i]->Info()->num_velocities();
   }
   for (auto i = 0; i < frames_.size(); ++i) {
     // Add frame
@@ -56,13 +61,9 @@ void Model::BuildFromUrdf(const std::string& urdf_path,
 void Model::Finalize(const Eigen::VectorXd& initial_state) {
   assert(is_constructed_);
   // Check if all joints are added to the model, and set the joint indices.
-  size_t last_position_index = 0, last_velocity_index = 0;
   for (auto& joint : joints_) {
     assert(joint != nullptr);
     assert(joint->IsFullyConfigured());
-    joint->SetIndices(last_position_index, last_velocity_index);
-    last_position_index += joint->Info()->num_positions();
-    last_velocity_index += joint->Info()->num_velocities();
   }
   // // Resize the state vector
   // states_.resize(num_positions_ + num_velocities_);
@@ -79,12 +80,12 @@ void Model::Finalize() {
 }
 
 Joint* const Model::GetJoint(JointIndex index) {
-  assert(is_finalized_);
+  assert(is_constructed_);
   return joints_[index].get();
 }
 
 Joint* const Model::GetJoint(const std::string& name) {
-  assert(is_finalized_);
+  assert(is_constructed_);
   return joints_[GetJointIndex(name)].get();
 }
 
@@ -168,6 +169,16 @@ Eigen::Vector3d Model::EvalCenterOfMassPosition() {
 Eigen::Vector3d Model::GetCenterOfMassPosition() const {
   assert(is_finalized_);
   return impls_[default_impl_index_]->GetCenterOfMassPosition();
+}
+
+const Eigen::VectorBlock<const Eigen::VectorXd> Model::GetPositions() const {
+  assert(is_finalized_);
+  return states_.segment(0, num_positions_);
+}
+
+const Eigen::VectorBlock<const Eigen::VectorXd> Model::GetVelocities() const {
+  assert(is_finalized_);
+  return states_.segment(num_positions_, num_velocities_);
 }
 
 const Eigen::VectorXd& Model::GetAccelerations() const {
