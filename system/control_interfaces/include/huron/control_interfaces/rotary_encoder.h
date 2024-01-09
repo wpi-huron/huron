@@ -9,102 +9,106 @@
 #include "encoder.h"
 
 namespace huron {
+
+class RotaryEncoderConfiguration : public EncoderConfiguration {
+ public:
+  /**
+   * Supports further inheritance.
+   */
+  RotaryEncoderConfiguration(ConfigMap config_map,
+                             std::set<std::string> valid_keys)
+      : EncoderConfiguration(config_map,
+                             [&valid_keys]() {
+                               std::set<std::string> tmp(kRotEncValidKeys);
+                               tmp.merge(valid_keys);
+                               return tmp;
+                             }()) {}
+
+  explicit RotaryEncoderConfiguration(double cpr)
+      : RotaryEncoderConfiguration(
+          ConfigMap({{"cpr", cpr}}), {}) {}
+
+ private:
+  static const inline std::set<std::string> kRotEncValidKeys{"cpr"};
+};
+
 /**
  * Abstract class for using an encoder.
  *
  * @ingroup control_interfaces
  */
 class RotaryEncoder : public Encoder {
- protected:
-  float velocity_ = 0;
-  float prev_velocity_ = 0;
-  float count_ = 0;
-  float prev_count_ = 0;
-  float cpr_;
-
  public:
-  class RotaryEncoderConfiguration : public EncoderConfiguration {
-   public:
-    /**
-     * Supports further inheritance.
-     */
-    RotaryEncoderConfiguration(ConfigMap config_map,
-                               std::set<std::string> valid_keys)
-        : EncoderConfiguration(config_map,
-                               [&valid_keys]() {
-                                 std::set<std::string> tmp(kRotEncValidKeys);
-                                 tmp.merge(valid_keys);
-                                 return tmp;
-                               }()) {}
-
-    explicit RotaryEncoderConfiguration(float cpr)
-        : RotaryEncoderConfiguration(
-            ConfigMap({{"cpr", cpr}}), {}) {}
-
-   private:
-    static const inline std::set<std::string> kRotEncValidKeys{"cpr"};
-  };
-
   explicit RotaryEncoder(std::unique_ptr<RotaryEncoderConfiguration> config)
-      : Encoder(std::move(config)) {
-    cpr_ = std::any_cast<float>(config_.get()->Get("cpr"));
+    : Encoder(std::move(config)) {
+    cpr_ = std::any_cast<double>(config_.get()->Get("cpr"));
   }
-  explicit RotaryEncoder(float cpr)
+  explicit RotaryEncoder(double cpr)
       : RotaryEncoder(std::make_unique<RotaryEncoderConfiguration>(cpr)) {}
   RotaryEncoder(const RotaryEncoder&) = delete;
   RotaryEncoder& operator=(const RotaryEncoder&) = delete;
   ~RotaryEncoder() override = default;
 
+  void RequestStateUpdate() final {
+    prev_count_ = count_;
+    prev_velocity_ = velocity_;
+    DoUpdateState();
+  }
+
   /**
      * Gets the current encoder count.
      */
-  virtual float GetCount() = 0;
+  double GetCount() const {
+    return count_;
+  }
 
   /**
      * Gets the current encoder velocity in count.
      */
-  virtual float GetVelocityCount() = 0;
+  double GetVelocityCount() const {
+    return velocity_;
+  }
 
   /**
      * Gets the previous encoder count.
      */
-  float GetPrevCount() {
+  double GetPrevCount() const {
     return prev_count_;
   }
 
   /**
      * Gets the counts per revolution (CPR).
      */
-  float GetCPR() {
+  double GetCPR() const {
     return cpr_;
   }
 
   /**
      * Gets the current angle in radians.
      */
-  float GetPosition() override {
-    return GetCount() / cpr_ * 2.0 * M_PI;
+  double GetPosition() const override {
+    return count_ / cpr_ * 2.0 * M_PI;
   }
 
   /**
      * Gets the current angle in degrees.
      */
-  float GetAngleDegree() {
-    return GetCount() / cpr_ * 360.0;
+  double GetAngleDegree() const {
+    return count_ / cpr_ * 360.0;
   }
 
   /**
      * Gets the current velocity in radians/second.
      */
-  float GetVelocity() override {
-    return GetVelocityCount() / cpr_ * 2 * M_PI;
+  double GetVelocity() const override {
+    return velocity_ / cpr_ * 2 * M_PI;
   }
 
   /**
      * Gets the current velocity in degrees/second.
      */
-  float GetVelocityDegree() {
-    return GetVelocityCount() / cpr_ * 360.0;
+  double GetVelocityDegree() const {
+    return velocity_ / cpr_ * 360.0;
   }
 
   /**
@@ -114,6 +118,26 @@ class RotaryEncoder : public Encoder {
     count_ = 0.0;
     prev_count_ = 0.0;
   }
+
+ protected:
+  /**
+   * Classes derived from RotaryEncoder should override this function instead
+   * of directly overriding RequestUpdateState(). RotaryEncoder already handled
+   * the internal count update for convenience.
+   *
+   * This function should update the current count (count_) and, if possible,
+   * velocity (velocity_).
+   */
+  virtual void DoUpdateState() = 0;
+
+  /// \brief Encoder velocity in counts per second.
+  double velocity_ = 0.0;
+  /// \brief Encoder previous velocity in counts per second.
+  double prev_velocity_ = 0.0;
+  double count_ = 0.0;
+  double prev_count_ = 0.0;
+  double cpr_;
+
 };
 
 }  // namespace huron

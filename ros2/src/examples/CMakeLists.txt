@@ -13,13 +13,14 @@ list(APPEND CMAKE_PREFIX_PATH
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(huron_ros2 REQUIRED)
 find_package(huron REQUIRED)
 
 add_executable(test_pub_sub src/test_pub_sub.cc)
 add_executable(test_push_recovery src/test_push_recovery.cc)
-ament_target_dependencies(test_pub_sub rclcpp sensor_msgs huron_ros2)
-ament_target_dependencies(test_push_recovery huron rclcpp sensor_msgs huron_ros2)
+ament_target_dependencies(test_pub_sub rclcpp sensor_msgs nav_msgs huron_ros2)
+ament_target_dependencies(test_push_recovery huron rclcpp sensor_msgs nav_msgs huron_ros2)
 
 
 install(TARGETS

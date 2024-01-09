@@ -4,10 +4,19 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Configure target build platform. Defaults to building for Raspberry Pi (armv7l).
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+# Configure target build platform. Defaults to building for Raspberry Pi
+# (armv7l).
 set(BUILD_TYPE "armv7l" CACHE STRING "Choose the build type: x86_64 or armv7l")
 
-    # Conditionally set the toolchain file based on the build type
+# Conditionally set the toolchain file based on the build type
 if(BUILD_TYPE STREQUAL "armv7l")
     set(CMAKE_TOOLCHAIN_FILE "tools/armhf-toolchain.cmake")
 elseif(BUILD_TYPE STREQUAL "x86_64")
@@ -18,12 +27,23 @@ endif()
 
 project(huron)
 
+# Find pinocchio
+if (DEFINED USE_PINOCCHIO)
+  find_package(pinocchio REQUIRED)
+  message(pinocchio_INCLUDE_DIRS="${pinocchio_INCLUDE_DIRS}")
+endif()
+
 # Find sockcanpp
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 find_package(sockcanpp REQUIRED)
-find_package (Eigen3 REQUIRED)
 
 message(sockcanpp_INCLUDE_DIRS="${sockcanpp_INCLUDE_DIRS}")
+
+# Find Serial
+find_package(serial REQUIRED)
+message(serial_INCLUDE_DIRS="${serial_INCLUDE_DIRS}")
+
+find_package (Eigen3 REQUIRED)
 
 # Google Test
 include(FetchContent)
@@ -45,20 +65,32 @@ enable_testing()
 add_executable(huron_tests huron.cc)
 
 # Add subpackages
+add_subdirectory(common)
+add_subdirectory(math)
 add_subdirectory(driver)
 add_subdirectory(utils)
 add_subdirectory(system)
 add_subdirectory(control)
+add_subdirectory(multibody)
 # add_subdirectory(third_party)
 
 target_link_libraries(huron
-    PUBLIC
+  PUBLIC
     sockcanpp
+    serial
 )
 target_include_directories(huron
     PUBLIC
     ${sockcanpp_INCLUDE_DIRS}/..
+    ${serial_INCLUDE_DIRS}/..
     ${EIGEN3_INCLUDE_DIR}/..)
+
+if (DEFINED USE_PINOCCHIO)
+  target_link_libraries(huron
+    PUBLIC
+      pinocchio::pinocchio)
+    target_compile_definitions(huron PUBLIC HURON_USE_PINOCCHIO=1)
+endif()
 
 # Install the "huronConfig.cmake" file and export the target
 install(TARGETS huron
@@ -91,8 +123,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/huronConfig.cmake
 )
 # Also install Findsockcanpp.cmake
 install(
-    FILES Findsockcanpp.cmake
-    DESTINATION lib/cmake/huron/Modules
+  FILES Findsockcanpp.cmake Findserial.cmake
+  DESTINATION lib/cmake/huron/Modules
 )
 
 # Uninstall target
@@ -108,12 +140,13 @@ if(NOT TARGET uninstall)
 endif()
 
 # Build examples
-add_subdirectory(examples)
+# add_subdirectory(examples)
 
 target_link_libraries(
   huron_tests
   huron
   sockcanpp
+  serial
   GTest::gtest_main
 )
 

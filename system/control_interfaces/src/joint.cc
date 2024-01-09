@@ -2,44 +2,28 @@
 
 namespace huron {
 
-Joint::Joint(std::unique_ptr<Motor> motor,
-             std::unique_ptr<Encoder> encoder,
-             std::unique_ptr<JointConfiguration> config)
-    : MovingComponent(std::move(config)),
-      motor_(std::move(motor)),
-      encoder_(std::move(encoder)) {}
+Joint::Joint(std::unique_ptr<JointDescription> joint_desc,
+             std::shared_ptr<StateProvider> state_provider)
+  : jd_(std::move(joint_desc)),
+    positions_(Eigen::VectorXd::Zero(jd_->num_positions())),
+    velocities_(Eigen::VectorXd::Zero(jd_->num_velocities())),
+    state_provider_(std::move(state_provider)) {}
 
-Joint::Joint(std::unique_ptr<Motor> motor,
-             std::unique_ptr<Encoder> encoder)
-    : Joint(std::move(motor),
-            std::move(encoder),
-            std::make_unique<JointConfiguration>()) {}
-
-void Joint::Initialize() {
-  encoder_->Initialize();
-  motor_->Initialize();
+void Joint::SetStateProvider(std::shared_ptr<StateProvider> state_provider) {
+  assert(
+    state_provider->dim()[0] == (jd_->num_positions() + jd_->num_velocities())
+    &&
+    state_provider->dim()[1] == 1);
+  state_provider_ = state_provider;
 }
 
-void Joint::SetUp() {
-  encoder_->SetUp();
-  motor_->SetUp();
-}
-
-void Joint::Terminate() {
-  encoder_->Terminate();
-  motor_->Terminate();
-}
-
-bool Joint::Move(float value) {
-  return motor_->Move(value);
-}
-
-bool Joint::Move(const std::vector<float>& values) {
-  return motor_->Move(values);
-}
-
-bool Joint::Stop() {
-  return motor_->Stop();
+void Joint::UpdateState() {
+  assert(state_provider_ != nullptr);
+  state_provider_->RequestStateUpdate();
+  Eigen::VectorXd tmp(jd_->num_positions() + jd_->num_velocities());
+  state_provider_->GetNewState(tmp);
+  positions_ = tmp.segment(0, jd_->num_positions());
+  velocities_ = tmp.segment(jd_->num_positions(), jd_->num_velocities());
 }
 
 }  // namespace huron

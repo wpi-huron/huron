@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-#include "configuration.h"
+#include "huron/control_interfaces/configuration.h"
 
 namespace huron {
 
@@ -40,6 +40,8 @@ class GenericComponent {
  public:
   explicit GenericComponent(std::unique_ptr<Configuration> config)
     : config_(std::move(config)) {}
+  GenericComponent()
+    : GenericComponent(std::make_unique<Configuration>(ConfigMap())) {}
   GenericComponent(const GenericComponent&) = delete;
   GenericComponent& operator=(const GenericComponent&) = delete;
   virtual ~GenericComponent() = default;

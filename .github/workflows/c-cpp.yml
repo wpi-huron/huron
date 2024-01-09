@@ -48,8 +48,13 @@ jobs:
           cd third_party/libsockcanpp
           cmake -DCMAKE_TOOLCHAIN_FILE=../../tools/armhf-toolchain.cmake -DBUILD_SHARED_LIBS=ON -Bbuild
           cmake --build build --parallel --target install
-
           cd -
+
+          cd third_party/serial
+          cmake -DCMAKE_TOOLCHAIN_FILE=../../tools/armhf-toolchain.cmake -DBUILD_SHARED_LIBS=ON -Bbuild
+          cmake --build build --parallel --target install
+          cd -
+
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib
           cmake -DBUILD_TYPE=armv7l -Bbuild
           cmake --build build --parallel
@@ -71,6 +76,12 @@ jobs:
       - name: Build and install libsockcanpp
         run: |
           cd third_party/libsockcanpp
+          cmake --toolchain ../../tools/x86_64-toolchain.cmake -DBUILD_SHARED_LIBS=ON -Bbuild
+          sudo cmake --build build --parallel --target install
+          cd -
+      - name: Build and install serial
+        run: |
+          cd third_party/serial
           cmake --toolchain ../../tools/x86_64-toolchain.cmake -DBUILD_SHARED_LIBS=ON -Bbuild
           sudo cmake --build build --parallel --target install
           cd -

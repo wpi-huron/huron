@@ -9,57 +9,6 @@ double PushRecoveryControl::constrainAngle(double x) {
   return x - atan(1)*4;
 }
 
-
-double PushRecoveryControl::CalculateXCOP(std::vector<double> fsr_right,
-                                          std::vector<double> fsr_left) {
-  /**
-     * Outputs:
-     * cop_x: x coordinate of COP
-     */
-
-  // Vertical distance from the load cell to bottom of the foot
-  double d = 0.0983224252792114;
-  // Position of left sensor
-  Eigen::RowVectorXf p1(3);
-  p1 << 0, 0.0775, d;
-  // Position of right sensor
-  Eigen::RowVectorXf p2(3);
-  p2 << 0, -0.0775, d;
-
-  std::vector<double> r1_ft_torque, l1_ft_torque, r1_ft_force, l1_ft_force;
-  r1_ft_force = {fsr_right.at(0),
-                 fsr_right.at(1),
-                 fsr_right.at(2)};
-  r1_ft_torque = {fsr_right.at(3),
-                  fsr_right.at(4),
-                  fsr_right.at(5)};
-  l1_ft_force = {fsr_left.at(0),
-                 fsr_left.at(1),
-                 fsr_left.at(2)};
-  l1_ft_torque = {fsr_left.at(3),
-                  fsr_left.at(4),
-                  fsr_left.at(5)};
-
-  Eigen::RowVectorXf tau_right(3);
-  tau_right << r1_ft_torque[0], r1_ft_torque[1], r1_ft_torque[2];
-  tau_right = tau_right.transpose();  // Convert from Row to column vector
-
-  Eigen::RowVectorXf tau_left(3);
-  tau_left << l1_ft_torque[0], l1_ft_torque[1], l1_ft_torque[2];
-  tau_left = tau_left.transpose();
-
-  Eigen::RowVectorXf f_right(3);
-  f_right << r1_ft_force[0], r1_ft_force[1], r1_ft_force[2];
-  f_right = f_right.transpose();
-
-  Eigen::RowVectorXf f_left(3);
-  f_left << l1_ft_force[0], l1_ft_force[1], l1_ft_force[2];
-  f_left = f_left.transpose();
-
-  return (tau_left(1) + d*f_left(2) + tau_right(1) +
-          d*f_right(2)) / (f_left(0) + f_right(0));
-}
-
 Eigen::MatrixXd PushRecoveryControl::ModelCalculation() {
   // Note the assigning values:
   double q1 = theta1;
@@ -211,9 +160,9 @@ Eigen::MatrixXd PushRecoveryControl::CalculateCOM() {
 }
 
 Eigen::MatrixXd PushRecoveryControl::SMCController(
-  Eigen::RowVectorXf cop,
-  Eigen::MatrixXd J_X_COM,
-  Eigen::MatrixXd J_X_COM_dot) {
+  const Eigen::Vector2d& cop,
+  const Eigen::MatrixXd& J_X_COM,
+  const Eigen::MatrixXd& J_X_COM_dot) {
   // SMC for Linear motion
   // rate of change of linear momentum
 
@@ -516,7 +465,7 @@ Eigen::MatrixXd PushRecoveryControl::SMCController(
 
   double k_tunning = 2;  // For second option
   double Desired_Angular_Momentum =
-    k_tunning * ((cop(1)) - X_COM) *  (1);
+    k_tunning * ((cop(0)) - X_COM) *  (1);
 
   // Desired accleration to achieve both linear and angular tasks without LPF
   Eigen::MatrixXd mat(2, 3);
@@ -610,25 +559,17 @@ Eigen::MatrixXd PushRecoveryControl::SMCPostureCorrection() {
   return q_double_dot;
 }
 
-Eigen::MatrixXd PushRecoveryControl::GetTorque
-  (std::vector<double> fsr_right,
-   std::vector<double> fsr_left,
-   std::vector<double> position,
-   std::vector<double> velocity) {
-  theta1 = constrainAngle(position.at(3));  // ankle_pitch_theta
-  theta2 = constrainAngle(position.at(2));  // knee_pitch_theta
-  theta3 = constrainAngle(position.at(7));  // hip_pitch_theta
+Eigen::MatrixXd PushRecoveryControl::GetTorque(
+  const Eigen::Vector2d& cop,
+  const Eigen::VectorXd& position,
+  const Eigen::VectorXd& velocity) {
+  theta1 = constrainAngle(position(4 + 7));  // ankle_pitch_theta
+  theta2 = constrainAngle(position(3 + 7));  // knee_pitch_theta
+  theta3 = constrainAngle(position(2 + 7));  // hip_pitch_theta
 
-  theta1_dot = constrainAngle(velocity.at(3));
-  theta2_dot = constrainAngle(velocity.at(2));
-  theta3_dot = constrainAngle(velocity.at(7));
-
-  double x_cop = CalculateXCOP(fsr_right, fsr_left);
-  std::cout << "X_COP =" << std::endl <<
-    x_cop << std::endl;
-  Eigen::RowVectorXf cop(2), filtered_cop(2);
-  cop << 0, x_cop;
-  filtered_cop<< 0, 0*alpha + (1-alpha)*x_cop;
+  theta1_dot = constrainAngle(velocity(4 + 6));
+  theta2_dot = constrainAngle(velocity(3 + 6));
+  theta3_dot = constrainAngle(velocity(2 + 6));
 
   Eigen::MatrixXd mat_m(3, 3);
   Eigen::MatrixXd mat_c(3, 1);

@@ -3,59 +3,47 @@
 namespace huron {
 
 Robot::Robot(std::unique_ptr<RobotConfiguration> config)
-  : MovingGroupComponent(std::move(config)) {}
+  : GenericComponent(std::move(config)), MovingGroup(),
+    model_(std::make_shared<multibody::Model>()) {}
 
 Robot::Robot()
   : Robot::Robot(std::make_unique<RobotConfiguration>()) {}
 
-std::vector<double> Robot::GetJointPosition() {
-  std::vector<double> result;
-  for (auto joint : joints_) {
-    result.push_back(joint->GetPosition());
-  }
-  return result;
-}
+Robot::Robot(std::unique_ptr<RobotConfiguration> config,
+             std::shared_ptr<multibody::Model> model)
+  : GenericComponent(std::move(config)), MovingGroup(),
+    model_(std::make_shared<multibody::Model>()) {}
 
-std::vector<double> Robot::GetJointVelocity() {
-  std::vector<double> result;
-  for (auto joint : joints_) {
-    result.push_back(joint->GetVelocity());
-  }
-  return result;
-}
+Robot::Robot(std::shared_ptr<multibody::Model> model)
+  : Robot::Robot(std::make_unique<RobotConfiguration>(), std::move(model)) {}
 
-bool Robot::AddJoint(std::shared_ptr<Joint> joint) {
-  joints_.push_back(std::move(joint));
-  return true;
-}
-
-void Robot::Initialize() {
-  for (auto joint : joints_) {
-    joint->Initialize();
+void Robot::RegisterStateProvider(
+  std::shared_ptr<StateProvider> state_provider,
+  bool is_joint_state_provider) {
+  if (!is_joint_state_provider) {
+    non_joint_state_providers_.push_back(state_provider);
   }
 }
 
-void Robot::SetUp() {
-  for (auto joint : joints_) {
-    joint->SetUp();
+void Robot::UpdateAllStates() {
+  for (auto& state_provider : non_joint_state_providers_) {
+    state_provider->RequestStateUpdate();
   }
+  model_->UpdateJointStates();
 }
 
-void Robot::Terminate() {
-  for (auto joint : joints_) {
-    joint->Terminate();
-  }
+void Robot::UpdateJointStates() {
+  model_->UpdateJointStates();
 }
 
-bool Robot::Move(const std::vector<double>& values) {
-  for (size_t i = 0; i < values.size(); ++i) {
-    joints_[i]->Move(values[i]);
-  }
-  return true;
+const Eigen::VectorBlock<const Eigen::VectorXd>
+Robot::GetJointPositions() const {
+  return model_->GetPositions();
 }
 
-bool Robot::Stop() {
-  return Move(std::vector<double>(joints_.size()));
+const Eigen::VectorBlock<const Eigen::VectorXd>
+Robot::GetJointVelocities() const {
+  return model_->GetVelocities();
 }
 
 }  // namespace huron

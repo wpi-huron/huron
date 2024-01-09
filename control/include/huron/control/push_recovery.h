@@ -11,21 +11,21 @@ class PushRecoveryControl {
   static const inline std::complex<double> i{0.0, 1.0};
   // EOM of 3 DOF model
   // Mass in kg, length in meter
-  double alpha = 0.7;
-  double m1 = 5.9117,
+  static constexpr double alpha = 0.7;
+  static constexpr double m1 = 5.9117,
         m2 = 4.2554,
         m3 = 10.19329;
 
-  double lc1 = 0.15149,
+  static constexpr double lc1 = 0.15149,
         lc2 = 0.24517,
         lc3 = 0.1585;
 
-  double l1 = 0.3715,
+  static constexpr double l1 = 0.3715,
         l2 = 0.49478,
         l3 = 0.32662;
 
-  double g = 9.81;
-  double I1 = 0.0222,
+  static constexpr double g = 9.81;
+  static constexpr double I1 = 0.0222,
         I2 = 0.01009,
         I3 = 0.0219;
 
@@ -51,21 +51,18 @@ class PushRecoveryControl {
   double theta1, theta2, theta3 = 0;
   double theta1_dot, theta2_dot, theta3_dot = 0;
   double X_COM, X_dot_COM = 0;
-  double CalculateXCOP(std::vector<double> fsr_right,
-                       std::vector<double> fsr_left);
   Eigen::MatrixXd ModelCalculation();
   Eigen::MatrixXd CalculateCOM();
   template <typename T>
   int sign (const T &val) { return (val > 0) - (val < 0); }
-  Eigen::MatrixXd SMCController(Eigen::RowVectorXf cop,
-                                Eigen::MatrixXd J_X_COM,
-                                Eigen::MatrixXd J_X_COM_dot);
+  Eigen::MatrixXd SMCController(const Eigen::Vector2d& cop,
+                                const Eigen::MatrixXd& J_X_COM,
+                                const Eigen::MatrixXd& J_X_COM_dot);
   Eigen::MatrixXd SMCPostureCorrection();
   double constrainAngle(double x);
 
  public:
-  Eigen::MatrixXd GetTorque(std::vector<double> fsr_right,
-                            std::vector<double> fsr_left,
-                            std::vector<double> position,
-                            std::vector<double> velocity);
+  Eigen::MatrixXd GetTorque(const Eigen::Vector2d& cop,
+                            const Eigen::VectorXd& position,
+                            const Eigen::VectorXd& velocity);
 };

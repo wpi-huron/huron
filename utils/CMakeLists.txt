@@ -1,15 +1,19 @@
 set(dir "${CMAKE_CURRENT_SOURCE_DIR}")
 
+list(APPEND SOURCE_FILES
+  "${dir}/src/string.cc")
 FILE(GLOB_RECURSE HEADER_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
 
 set(INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 
-# target_sources(huron
-#     PUBLIC
-#     ${HEADER_FILES}
-# )
+target_sources(huron
+    PRIVATE
+    ${SOURCE_FILES}
+    # PUBLIC
+    # ${HEADER_FILES}
+)
 target_include_directories(huron
     PUBLIC
     $<BUILD_INTERFACE:${INCLUDE_DIRS}>

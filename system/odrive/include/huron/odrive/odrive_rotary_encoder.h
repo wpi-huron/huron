@@ -7,11 +7,11 @@
 namespace huron {
 namespace odrive {
 
-class ODriveEncoder : public huron::RotaryEncoder {
+class ODriveEncoder final : public huron::RotaryEncoder {
  public:
   ODriveEncoder(std::unique_ptr<RotaryEncoderConfiguration> config,
 		std::shared_ptr<ODrive> odrive);
-  ODriveEncoder(float cpr, std::shared_ptr<ODrive> odrive);
+  ODriveEncoder(double cpr, std::shared_ptr<ODrive> odrive);
   ODriveEncoder(const ODriveEncoder&) = delete;
   ODriveEncoder& operator=(const ODriveEncoder&) = delete;
   ~ODriveEncoder() override = default;
@@ -20,12 +20,8 @@ class ODriveEncoder : public huron::RotaryEncoder {
   void SetUp() override;
   void Terminate() override;
 
-  float GetCount() override;
-  float GetVelocityCount() override;
-
-  GenericComponent& GetDriver() override {
-    return *odrive_.get();
-  }
+ protected:
+  void DoUpdateState() override;
 
  private:
   std::shared_ptr<ODrive> odrive_;
