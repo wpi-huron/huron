@@ -71,6 +71,22 @@ class Joint {
     return id_v_;
   }
 
+  size_t num_positions() const {
+    return jd_->num_positions();
+  }
+  
+  size_t nq() const {
+    return num_positions();
+  }
+
+  size_t num_velocities() const {
+    return jd_->num_velocities();
+  }
+
+  size_t nv() const {
+    return num_velocities();
+  }
+
  protected:
   std::unique_ptr<JointDescription> jd_;
   Eigen::VectorXd positions_;
