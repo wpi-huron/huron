@@ -160,9 +160,9 @@ Eigen::MatrixXd PushRecoveryControl::CalculateCOM() {
 }
 
 Eigen::MatrixXd PushRecoveryControl::SMCController(
-  Eigen::RowVectorXf cop,
-  Eigen::MatrixXd J_X_COM,
-  Eigen::MatrixXd J_X_COM_dot) {
+  const Eigen::Vector2d& cop,
+  const Eigen::MatrixXd& J_X_COM,
+  const Eigen::MatrixXd& J_X_COM_dot) {
   // SMC for Linear motion
   // rate of change of linear momentum
 
@@ -465,7 +465,7 @@ Eigen::MatrixXd PushRecoveryControl::SMCController(
 
   double k_tunning = 2;  // For second option
   double Desired_Angular_Momentum =
-    k_tunning * ((cop(1)) - X_COM) *  (1);
+    k_tunning * ((cop(0)) - X_COM) *  (1);
 
   // Desired accleration to achieve both linear and angular tasks without LPF
   Eigen::MatrixXd mat(2, 3);
@@ -560,22 +560,16 @@ Eigen::MatrixXd PushRecoveryControl::SMCPostureCorrection() {
 }
 
 Eigen::MatrixXd PushRecoveryControl::GetTorque(
-  double x_cop,
-  std::vector<double> position,
-  std::vector<double> velocity) {
-  theta1 = constrainAngle(position.at(3));  // ankle_pitch_theta
-  theta2 = constrainAngle(position.at(2));  // knee_pitch_theta
-  theta3 = constrainAngle(position.at(7));  // hip_pitch_theta
+  const Eigen::Vector2d& cop,
+  const Eigen::VectorXd& position,
+  const Eigen::VectorXd& velocity) {
+  theta1 = constrainAngle(position(4 + 7));  // ankle_pitch_theta
+  theta2 = constrainAngle(position(3 + 7));  // knee_pitch_theta
+  theta3 = constrainAngle(position(2 + 7));  // hip_pitch_theta
 
-  theta1_dot = constrainAngle(velocity.at(3));
-  theta2_dot = constrainAngle(velocity.at(2));
-  theta3_dot = constrainAngle(velocity.at(7));
-
-  std::cout << "X_COP =" << std::endl <<
-    x_cop << std::endl;
-  Eigen::RowVectorXf cop(2), filtered_cop(2);
-  cop << 0, x_cop;
-  filtered_cop<< 0, 0*alpha + (1-alpha)*x_cop;
+  theta1_dot = constrainAngle(velocity(4 + 6));
+  theta2_dot = constrainAngle(velocity(3 + 6));
+  theta3_dot = constrainAngle(velocity(2 + 6));
 
   Eigen::MatrixXd mat_m(3, 3);
   Eigen::MatrixXd mat_c(3, 1);
