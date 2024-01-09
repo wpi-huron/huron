@@ -14,8 +14,10 @@ set(huron_LIBRARIES huron::huron)
 # Find dependencies (if any)
 # list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
-find_dependency(sockcanpp REQUIRED)
-find_dependency(serial REQUIRED)
+find_dependency(sockcanpp)
+find_dependency(serial)
+
+find_package(pinocchio)
 
 include("${CMAKE_CURRENT_LIST_DIR}/huronTargets.cmake")
 
