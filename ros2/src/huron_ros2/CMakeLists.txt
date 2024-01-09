@@ -13,6 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 
 find_package(huron REQUIRED)
@@ -21,11 +22,14 @@ add_library(${PROJECT_NAME}
   SHARED
   src/huron.cc
   src/huron_node.cc
+  src/joint_state_provider.cc
+  src/force_torque_sensor.cc
+  src/joint_group_controller.cc
 )
 
 # target_link_libraries(${PROJECT_NAME} PUBLIC ${rclcpp_LIBRARIES} ${sensor_msgs_LIBRARIES} huron::huron)
-ament_target_dependencies(${PROJECT_NAME} PUBLIC rclcpp sensor_msgs geometry_msgs)
-target_link_libraries(${PROJECT_NAME} PUBLIC huron)
+ament_target_dependencies(${PROJECT_NAME} PUBLIC rclcpp sensor_msgs geometry_msgs nav_msgs)
+target_link_libraries(${PROJECT_NAME} PUBLIC huron::huron)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

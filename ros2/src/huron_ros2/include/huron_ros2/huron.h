@@ -14,10 +14,8 @@ namespace ros2 {
 class Huron : public huron::LeggedRobot {
  public:
   Huron(std::shared_ptr<HuronNode> node,
-        std::unique_ptr<huron::Robot::RobotConfiguration> config,
-        std::unique_ptr<huron::ZeroMomentPoint> zmp);
-  Huron(std::shared_ptr<HuronNode> node,
-        std::unique_ptr<huron::ZeroMomentPoint> zmp);
+        std::unique_ptr<huron::RobotConfiguration> config);
+  explicit Huron(std::shared_ptr<HuronNode> node);
 
   Huron(const Huron&) = delete;
   Huron& operator=(const Huron&) = delete;
@@ -31,14 +29,6 @@ class Huron : public huron::LeggedRobot {
   // MovingGroupComponent interface
   bool Move(const std::vector<double>& values) override;
   bool Stop() override;
-
-  // Robot interface
-  std::vector<double> GetJointPosition() override;
-  std::vector<double> GetJointVelocity() override;
-
-  // FSR
-  std::vector<double> GetForceResistorSensorLeft();
-  std::vector<double> GetForceResistorSensorRight();
 
   // ROS-specific
   void Loop();

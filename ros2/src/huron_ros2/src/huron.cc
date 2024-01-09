@@ -4,16 +4,13 @@ namespace huron {
 namespace ros2 {
 
 Huron::Huron(std::shared_ptr<HuronNode> node,
-             std::unique_ptr<huron::Robot::RobotConfiguration> config,
-             std::unique_ptr<huron::ZeroMomentPoint> zmp)
-  : huron::LeggedRobot(std::move(config), std::move(zmp)),
+             std::unique_ptr<huron::RobotConfiguration> config)
+  : huron::LeggedRobot(std::move(config)),
     node_(std::move(node)) {}
 
-Huron::Huron(std::shared_ptr<HuronNode> node,
-             std::unique_ptr<huron::ZeroMomentPoint> zmp)
+Huron::Huron(std::shared_ptr<HuronNode> node)
   : Huron(std::move(node),
-          std::make_unique<huron::Robot::RobotConfiguration>(),
-          std::move(zmp)) {}
+          std::make_unique<huron::RobotConfiguration>()) {}
 
 void Huron::Initialize() {
 }
@@ -33,20 +30,6 @@ bool Huron::Stop() {
   return Move(std::vector<double>(12));
 }
 
-std::vector<double> Huron::GetJointPosition() {
-  return node_->joint_position_;
-}
-
-std::vector<double> Huron::GetJointVelocity() {
-  return node_->joint_velocity_;
-}
-
-std::vector<double> Huron::GetForceResistorSensorLeft() {
-  return node_->fsr_left_;
-}
-std::vector<double> Huron::GetForceResistorSensorRight() {
-  return node_->fsr_right_;
-}
 void Huron::Loop() {
   rclcpp::spin_some(node_);
 }

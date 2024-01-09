@@ -4,7 +4,9 @@ namespace huron {
 namespace ros2 {
 
 HuronNode::HuronNode()
-  : Node("huron_node") {
+  : Node("huron_node"),
+    joint_state_(Eigen::VectorXd::Zero(kNumPositions + kNumVelocities)),
+    wrenches_({huron::Vector6d::Zero(), huron::Vector6d::Zero()}) {
   joint_state_sub_ =
     this->create_subscription<sensor_msgs::msg::JointState>(
       "joint_states",
@@ -13,20 +15,28 @@ HuronNode::HuronNode()
         &HuronNode::JointStatesCallback,
         this,
         std::placeholders::_1));
-  fsr_left_sub_ =
+  odom_sub_ =
+    this->create_subscription<nav_msgs::msg::Odometry>(
+      "/p3d/odom",
+      10,
+      std::bind(
+        &HuronNode::OdomCallback,
+        this,
+        std::placeholders::_1));
+  left_ft_sensor_sub_ =
     this->create_subscription<geometry_msgs::msg::WrenchStamped>(
       "huron/sensor/l1_ft_sensor",
       10,
       std::bind(
-        &HuronNode::FSRLeftCallback,
+        &HuronNode::LeftFtSensorCallback,
         this,
         std::placeholders::_1));
-  fsr_right_sub_ =
+  right_ft_sensor_sub_ =
     this->create_subscription<geometry_msgs::msg::WrenchStamped>(
       "huron/sensor/r1_ft_sensor",
       10,
       std::bind(
-        &HuronNode::FSRRightCallback,
+        &HuronNode::RightFtSensorCallback,
         this,
         std::placeholders::_1));
   joint_effort_pub_ =
@@ -36,30 +46,51 @@ HuronNode::HuronNode()
 
 void HuronNode::JointStatesCallback(
   std::shared_ptr<const sensor_msgs::msg::JointState> msg) {
-  joint_position_ = msg->position;
-  joint_velocity_ = msg->velocity;
+  for (size_t i = 0; i < msg->position.size(); ++i) {
+    // 7 first elements are the floating base
+    joint_state_(i + 7) = msg->position[i];
+  }
+  for (size_t j = 0; j < msg->velocity.size(); ++j) {
+    // 6 first elements are the floating base
+    joint_state_(j + 6 + kNumPositions) = msg->velocity[j];
+  }
 }
 
-void HuronNode::FSRLeftCallback(
-  std::shared_ptr<const geometry_msgs::msg::WrenchStamped> msg) {
-  geometry_msgs::msg::Wrench msgTemp = msg->wrench;
-  fsr_left_.push_back(msgTemp.force.x);
-  fsr_left_.push_back(msgTemp.force.y);
-  fsr_left_.push_back(msgTemp.force.z);
-  fsr_left_.push_back(msgTemp.torque.x);
-  fsr_left_.push_back(msgTemp.torque.y);
-  fsr_left_.push_back(msgTemp.torque.z);
+void HuronNode::OdomCallback(
+  std::shared_ptr<const nav_msgs::msg::Odometry> msg) {
+  joint_state_.segment(0, 13) << msg->pose.pose.position.x,
+                                 msg->pose.pose.position.y,
+                                 msg->pose.pose.position.z,
+                                 msg->pose.pose.orientation.x,
+                                 msg->pose.pose.orientation.y,
+                                 msg->pose.pose.orientation.z,
+                                 msg->pose.pose.orientation.w,
+                                 msg->twist.twist.linear.x,
+                                 msg->twist.twist.linear.y,
+                                 msg->twist.twist.linear.z,
+                                 msg->twist.twist.angular.x,
+                                 msg->twist.twist.angular.y,
+                                 msg->twist.twist.angular.z;
 }
 
-void HuronNode::FSRRightCallback(
+void HuronNode::LeftFtSensorCallback(
   std::shared_ptr<const geometry_msgs::msg::WrenchStamped> msg) {
-  geometry_msgs::msg::Wrench msgTemp = msg->wrench;
-  fsr_right_.push_back(msgTemp.force.x);
-  fsr_right_.push_back(msgTemp.force.y);
-  fsr_right_.push_back(msgTemp.force.z);
-  fsr_right_.push_back(msgTemp.torque.x);
-  fsr_right_.push_back(msgTemp.torque.y);
-  fsr_right_.push_back(msgTemp.torque.z);
+  wrenches_[0] << msg->wrench.force.x,
+                  msg->wrench.force.y,
+                  msg->wrench.force.z,
+                  msg->wrench.torque.x,
+                  msg->wrench.torque.y,
+                  msg->wrench.torque.z;
+}
+
+void HuronNode::RightFtSensorCallback(
+  std::shared_ptr<const geometry_msgs::msg::WrenchStamped> msg) {
+  wrenches_[0] << msg->wrench.force.x,
+                  msg->wrench.force.y,
+                  msg->wrench.force.z,
+                  msg->wrench.torque.x,
+                  msg->wrench.torque.y,
+                  msg->wrench.torque.z;
 }
 
 void HuronNode::PublishJointEffort(const std::vector<double>& values) {
