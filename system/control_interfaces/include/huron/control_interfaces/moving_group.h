@@ -15,7 +15,7 @@ class MovingGroup : public MovingInterface {
   MovingGroup();
   MovingGroup(const MovingGroup&) = delete;
   MovingGroup& operator=(const MovingGroup&) = delete;
-  ~MovingGroup() = default;
+  ~MovingGroup() override = default;
 
   virtual void AddToGroup(std::shared_ptr<MovingInterface> component);
 

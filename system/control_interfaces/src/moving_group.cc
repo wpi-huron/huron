@@ -6,7 +6,7 @@ MovingGroup::MovingGroup()
   : MovingInterface(0) {}
 
 void MovingGroup::AddToGroup(std::shared_ptr<MovingInterface> component) {
-  if (component == nullptr) {
+  if (component != nullptr) {
     moving_components_.push_back(std::move(component));
     moving_interface_dims_.push_back(moving_components_.back()->dim());
     dim_ += moving_interface_dims_.back();
